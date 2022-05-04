@@ -1,2 +1,0 @@
-DEBUG: getProvider() returning provider protocol=foo; type=jakarta.mail.Provider$Type@65e579dc; class=jakarta.mail.SessionTest$NullTransport; vendor=Apache;version=Java 1.4 Test
-DEBUG: getProvider() returning provider protocol=foo; type=jakarta.mail.Provider$Type@65e579dc; class=jakarta.mail.SessionTest$NullTransport; vendor=Apache;version=Java 1.4 Test

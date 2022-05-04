@@ -1,8 +1,0 @@
-jakarta.mail
-jakarta.mail.event
-jakarta.mail.internet
-jakarta.mail.search
-jakarta.mail.util
-org.apache.geronimo.mail
-org.apache.geronimo.mail.handlers
-org.apache.geronimo.mail.util
