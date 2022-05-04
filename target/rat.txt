@@ -1,0 +1,204 @@
+
+*****************************************************
+Summary
+-------
+Generated at: 2022-05-04T10:21:35+02:00
+
+Notes: 0
+Binaries: 1
+Archives: 0
+Standards: 177
+
+Apache Licensed: 177
+Generated Documents: 0
+
+JavaDocs are generated, thus a license header is optional.
+Generated files do not require license headers.
+
+0 Unknown Licenses
+
+*****************************************************
+  Files with Apache License headers will be marked AL
+  Binary files (which do not require any license headers) will be marked B
+  Compressed archives will be marked A
+  Notices, licenses etc. will be marked N
+  AL    pom.xml
+  B     src/test/resources/test.dat
+  AL    src/test/java/jakarta/mail/SimpleTextMessage.java
+  AL    src/test/java/jakarta/mail/AllTests.java
+  AL    src/test/java/jakarta/mail/HeaderTest.java
+  AL    src/test/java/jakarta/mail/MessagingExceptionTest.java
+  AL    src/test/java/jakarta/mail/PasswordAuthenticationTest.java
+  AL    src/test/java/jakarta/mail/SimpleFolder.java
+  AL    src/test/java/jakarta/mail/SessionTest.java
+  AL    src/test/java/jakarta/mail/util/SharedFileInputStreamTest.java
+  AL    src/test/java/jakarta/mail/util/SharedByteArrayInputStreamTest.java
+  AL    src/test/java/jakarta/mail/util/ByteArrayDataSourceTest.java
+  AL    src/test/java/jakarta/mail/EventQueueTest.java
+  AL    src/test/java/jakarta/mail/MessageContextTest.java
+  AL    src/test/java/jakarta/mail/QuotaTest.java
+  AL    src/test/java/jakarta/mail/internet/MimeMessageTest.java
+  AL    src/test/java/jakarta/mail/internet/ContentTypeTest.java
+  AL    src/test/java/jakarta/mail/internet/MimeMultipartTest.java
+  AL    src/test/java/jakarta/mail/internet/ParameterListTest.java
+  AL    src/test/java/jakarta/mail/internet/MimeTest.java
+  AL    src/test/java/jakarta/mail/internet/ContentDispositionTest.java
+  AL    src/test/java/jakarta/mail/internet/HeaderTokenizerTest.java
+  AL    src/test/java/jakarta/mail/internet/AllInternetTests.java
+  AL    src/test/java/jakarta/mail/internet/MailDateFormatTest.java
+  AL    src/test/java/jakarta/mail/internet/MimeBodyPartTest.java
+  AL    src/test/java/jakarta/mail/internet/InternetAddressTest.java
+  AL    src/test/java/jakarta/mail/internet/NewsAddressTest.java
+  AL    src/test/java/jakarta/mail/internet/MimeUtilityTest.java
+  AL    src/test/java/jakarta/mail/internet/PreencodedMimeBodyPartTest.java
+  AL    src/test/java/jakarta/mail/internet/InternetHeadersTest.java
+  AL    src/test/java/jakarta/mail/TestData.java
+  AL    src/test/java/jakarta/mail/URLNameTest.java
+  AL    src/test/java/jakarta/mail/FlagsTest.java
+  AL    src/test/java/jakarta/mail/event/StoreEventTest.java
+  AL    src/test/java/jakarta/mail/event/TransportEventTest.java
+  AL    src/test/java/jakarta/mail/event/MessageChangedEventTest.java
+  AL    src/test/java/jakarta/mail/event/AllEventTests.java
+  AL    src/test/java/jakarta/mail/event/FolderEventTest.java
+  AL    src/test/java/jakarta/mail/event/MessageCountEventTest.java
+  AL    src/test/java/jakarta/mail/event/ConnectionEventTest.java
+  AL    src/main/resources/META-INF/jakartamail.charset.map
+  AL    src/main/resources/META-INF/default.address.map
+  AL    src/main/resources/META-INF/mailcap
+  AL    src/main/resources/OSGI-INF/providers/org.apache.mail.handlers.TextHandler
+  AL    src/main/resources/OSGI-INF/providers/org.apache.mail.handlers.HtmlHandler
+  AL    src/main/resources/OSGI-INF/providers/org.apache.mail.handlers.MessageHandler
+  AL    src/main/resources/OSGI-INF/providers/org.apache.mail.handlers.MultipartHandler
+  AL    src/main/resources/OSGI-INF/providers/org.apache.mail.handlers.XMLHandler
+  AL    src/main/java/org/apache/geronimo/mail/util/ASCIIUtil.java
+  AL    src/main/java/org/apache/geronimo/mail/util/Base64DecoderStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/Base64Encoder.java
+  AL    src/main/java/org/apache/geronimo/mail/util/Base64.java
+  AL    src/main/java/org/apache/geronimo/mail/util/UUEncode.java
+  AL    src/main/java/org/apache/geronimo/mail/util/XTextEncoder.java
+  AL    src/main/java/org/apache/geronimo/mail/util/StringBufferOutputStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/UUDecoderStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/Hex.java
+  AL    src/main/java/org/apache/geronimo/mail/util/QuotedPrintableDecoderStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/QuotedPrintableEncoder.java
+  AL    src/main/java/org/apache/geronimo/mail/util/UUEncoderStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/QuotedPrintableEncoderStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/SessionUtil.java
+  AL    src/main/java/org/apache/geronimo/mail/util/RFC2231Encoder.java
+  AL    src/main/java/org/apache/geronimo/mail/util/QuotedPrintable.java
+  AL    src/main/java/org/apache/geronimo/mail/util/HexEncoder.java
+  AL    src/main/java/org/apache/geronimo/mail/util/XText.java
+  AL    src/main/java/org/apache/geronimo/mail/util/Base64EncoderStream.java
+  AL    src/main/java/org/apache/geronimo/mail/util/Encoder.java
+  AL    src/main/java/org/apache/geronimo/mail/util/UUEncoder.java
+  AL    src/main/java/org/apache/geronimo/mail/MailProviderBundleTrackerCustomizer.java
+  AL    src/main/java/org/apache/geronimo/mail/Activator.java
+  AL    src/main/java/org/apache/geronimo/mail/MailProviderRegistry.java
+  AL    src/main/java/org/apache/geronimo/mail/handlers/MultipartHandler.java
+  AL    src/main/java/org/apache/geronimo/mail/handlers/TextHandler.java
+  AL    src/main/java/org/apache/geronimo/mail/handlers/MessageHandler.java
+  AL    src/main/java/org/apache/geronimo/mail/handlers/HtmlHandler.java
+  AL    src/main/java/org/apache/geronimo/mail/handlers/XMLHandler.java
+  AL    src/main/java/jakarta/mail/StoreClosedException.java
+  AL    src/main/java/jakarta/mail/BodyPart.java
+  AL    src/main/java/jakarta/mail/Message.java
+  AL    src/main/java/jakarta/mail/Flags.java
+  AL    src/main/java/jakarta/mail/MessagingException.java
+  AL    src/main/java/jakarta/mail/MessageAware.java
+  AL    src/main/java/jakarta/mail/NoSuchProviderException.java
+  AL    src/main/java/jakarta/mail/MailSessionDefinition.java
+  AL    src/main/java/jakarta/mail/MessageContext.java
+  AL    src/main/java/jakarta/mail/util/ByteArrayDataSource.java
+  AL    src/main/java/jakarta/mail/util/SharedFileInputStream.java
+  AL    src/main/java/jakarta/mail/util/SharedByteArrayInputStream.java
+  AL    src/main/java/jakarta/mail/FetchProfile.java
+  AL    src/main/java/jakarta/mail/MultipartDataSource.java
+  AL    src/main/java/jakarta/mail/Provider.java
+  AL    src/main/java/jakarta/mail/FolderClosedException.java
+  AL    src/main/java/jakarta/mail/Part.java
+  AL    src/main/java/jakarta/mail/Transport.java
+  AL    src/main/java/jakarta/mail/SendFailedException.java
+  AL    src/main/java/jakarta/mail/EncodingAware.java
+  AL    src/main/java/jakarta/mail/EventQueue.java
+  AL    src/main/java/jakarta/mail/Address.java
+  AL    src/main/java/jakarta/mail/search/FlagTerm.java
+  AL    src/main/java/jakarta/mail/search/SearchException.java
+  AL    src/main/java/jakarta/mail/search/MessageNumberTerm.java
+  AL    src/main/java/jakarta/mail/search/SentDateTerm.java
+  AL    src/main/java/jakarta/mail/search/FromStringTerm.java
+  AL    src/main/java/jakarta/mail/search/SizeTerm.java
+  AL    src/main/java/jakarta/mail/search/OrTerm.java
+  AL    src/main/java/jakarta/mail/search/HeaderTerm.java
+  AL    src/main/java/jakarta/mail/search/RecipientStringTerm.java
+  AL    src/main/java/jakarta/mail/search/AddressStringTerm.java
+  AL    src/main/java/jakarta/mail/search/RecipientTerm.java
+  AL    src/main/java/jakarta/mail/search/DateTerm.java
+  AL    src/main/java/jakarta/mail/search/NotTerm.java
+  AL    src/main/java/jakarta/mail/search/ComparisonTerm.java
+  AL    src/main/java/jakarta/mail/search/SubjectTerm.java
+  AL    src/main/java/jakarta/mail/search/AndTerm.java
+  AL    src/main/java/jakarta/mail/search/StringTerm.java
+  AL    src/main/java/jakarta/mail/search/MessageIDTerm.java
+  AL    src/main/java/jakarta/mail/search/BodyTerm.java
+  AL    src/main/java/jakarta/mail/search/SearchTerm.java
+  AL    src/main/java/jakarta/mail/search/FromTerm.java
+  AL    src/main/java/jakarta/mail/search/AddressTerm.java
+  AL    src/main/java/jakarta/mail/search/ReceivedDateTerm.java
+  AL    src/main/java/jakarta/mail/search/IntegerComparisonTerm.java
+  AL    src/main/java/jakarta/mail/URLName.java
+  AL    src/main/java/jakarta/mail/MethodNotSupportedException.java
+  AL    src/main/java/jakarta/mail/MailSessionDefinitions.java
+  AL    src/main/java/jakarta/mail/internet/SharedInputStream.java
+  AL    src/main/java/jakarta/mail/internet/MimeBodyPart.java
+  AL    src/main/java/jakarta/mail/internet/InternetAddress.java
+  AL    src/main/java/jakarta/mail/internet/ParameterList.java
+  AL    src/main/java/jakarta/mail/internet/InternetHeaders.java
+  AL    src/main/java/jakarta/mail/internet/ContentDisposition.java
+  AL    src/main/java/jakarta/mail/internet/AddressException.java
+  AL    src/main/java/jakarta/mail/internet/MailDateFormat.java
+  AL    src/main/java/jakarta/mail/internet/MimeUtility.java
+  AL    src/main/java/jakarta/mail/internet/ContentType.java
+  AL    src/main/java/jakarta/mail/internet/HeaderTokenizer.java
+  AL    src/main/java/jakarta/mail/internet/ParseException.java
+  AL    src/main/java/jakarta/mail/internet/MimePartDataSource.java
+  AL    src/main/java/jakarta/mail/internet/MimeMessage.java
+  AL    src/main/java/jakarta/mail/internet/MimePart.java
+  AL    src/main/java/jakarta/mail/internet/MimeMultipart.java
+  AL    src/main/java/jakarta/mail/internet/PreencodedMimeBodyPart.java
+  AL    src/main/java/jakarta/mail/internet/NewsAddress.java
+  AL    src/main/java/jakarta/mail/internet/AddressParser.java
+  AL    src/main/java/jakarta/mail/Service.java
+  AL    src/main/java/jakarta/mail/Authenticator.java
+  AL    src/main/java/jakarta/mail/QuotaAwareStore.java
+  AL    src/main/java/jakarta/mail/IllegalWriteException.java
+  AL    src/main/java/jakarta/mail/FolderNotFoundException.java
+  AL    src/main/java/jakarta/mail/AuthenticationFailedException.java
+  AL    src/main/java/jakarta/mail/Store.java
+  AL    src/main/java/jakarta/mail/Session.java
+  AL    src/main/java/jakarta/mail/MessageRemovedException.java
+  AL    src/main/java/jakarta/mail/PasswordAuthentication.java
+  AL    src/main/java/jakarta/mail/ReadOnlyFolderException.java
+  AL    src/main/java/jakarta/mail/Header.java
+  AL    src/main/java/jakarta/mail/event/MessageCountListener.java
+  AL    src/main/java/jakarta/mail/event/ConnectionAdapter.java
+  AL    src/main/java/jakarta/mail/event/StoreListener.java
+  AL    src/main/java/jakarta/mail/event/MessageChangedListener.java
+  AL    src/main/java/jakarta/mail/event/FolderEvent.java
+  AL    src/main/java/jakarta/mail/event/FolderAdapter.java
+  AL    src/main/java/jakarta/mail/event/ConnectionListener.java
+  AL    src/main/java/jakarta/mail/event/TransportListener.java
+  AL    src/main/java/jakarta/mail/event/MessageChangedEvent.java
+  AL    src/main/java/jakarta/mail/event/MessageCountAdapter.java
+  AL    src/main/java/jakarta/mail/event/TransportAdapter.java
+  AL    src/main/java/jakarta/mail/event/FolderListener.java
+  AL    src/main/java/jakarta/mail/event/MailEvent.java
+  AL    src/main/java/jakarta/mail/event/MessageCountEvent.java
+  AL    src/main/java/jakarta/mail/event/StoreEvent.java
+  AL    src/main/java/jakarta/mail/event/TransportEvent.java
+  AL    src/main/java/jakarta/mail/event/ConnectionEvent.java
+  AL    src/main/java/jakarta/mail/Folder.java
+  AL    src/main/java/jakarta/mail/Quota.java
+  AL    src/main/java/jakarta/mail/Multipart.java
+  AL    src/main/java/jakarta/mail/UIDFolder.java
+ 
+*****************************************************

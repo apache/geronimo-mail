@@ -1,0 +1,59 @@
+/Library/Java/JavaVirtualMachines/jdk1.8.0_281.jdk/Contents/Home/jre/../bin/javadoc
+@options
+@packages
+-classpath
+'/Users/jlmonteiro/.m2/repository/org/apache/geronimo/specs/geronimo-activation_2.0_spec/1.0.0-SNAPSHOT/geronimo-activation_2.0_spec-1.0.0-SNAPSHOT.jar:/Users/jlmonteiro/.m2/repository/org/osgi/org.osgi.core/4.2.0/org.osgi.core-4.2.0.jar:/Users/jlmonteiro/.m2/repository/org/osgi/org.osgi.compendium/4.2.0/org.osgi.compendium-4.2.0.jar:/Users/jlmonteiro/.m2/repository/org/apache/geronimo/specs/geronimo-osgi-locator/1.0/geronimo-osgi-locator-1.0.jar:/Users/jlmonteiro/.m2/repository/org/apache/james/apache-mime4j-core/0.8.7/apache-mime4j-core-0.8.7.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'1.8'
+-sourcepath
+'/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/src/main/java:/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2003&#x2013;2022 <a href="http://www.apache.org">The Apache Software Foundation</a>. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs'
+-docencoding
+'UTF-8'
+-Xdoclint:none
+-doctitle
+'Apache Geronimo Jakarta Mail Spec 2.1 1.0.0-SNAPSHOT API'
+-linkoffline
+'https://docs.oracle.com/javase/8/docs/api' '/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/javadoc-bundle-options'
+-use
+-version
+-windowtitle
+'Apache Geronimo Jakarta Mail Spec 2.1 1.0.0-SNAPSHOT API'
+org.apache.geronimo.mail.util
+org.apache.geronimo.mail
+org.apache.geronimo.mail.handlers
+jakarta.mail
+jakarta.mail.util
+jakarta.mail.search
+jakarta.mail.internet
+jakarta.mail.event
+/Users/jlmonteiro/.m2/repository/org/apache/geronimo/specs/geronimo-activation_2.0_spec/1.0.0-SNAPSHOT/geronimo-activation_2.0_spec-1.0.0-SNAPSHOT.jar = 1651652452000
+/Users/jlmonteiro/.m2/repository/org/osgi/org.osgi.core/4.2.0/org.osgi.core-4.2.0.jar = 1648623164000
+/Users/jlmonteiro/.m2/repository/org/osgi/org.osgi.compendium/4.2.0/org.osgi.compendium-4.2.0.jar = 1648622172000
+/Users/jlmonteiro/.m2/repository/org/apache/geronimo/specs/geronimo-osgi-locator/1.0/geronimo-osgi-locator-1.0.jar = 1651579176000
+/Users/jlmonteiro/.m2/repository/org/apache/james/apache-mime4j-core/0.8.7/apache-mime4j-core-0.8.7.jar = 1651579196000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/src/main/java = 1651579379000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/generated-sources/annotations = 1651652475000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/constant-values.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/overview-tree.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/index.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/overview-frame.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/allclasses-noframe.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/serialized-form.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/index-all.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/deprecated-list.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/script.js = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/stylesheet.css = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/overview-summary.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/help-doc.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/allclasses-frame.html = 1651652492000
+/Users/jlmonteiro/devs/jeanouii/apache/geronimo-specs-trunk/geronimo-jakartamail_2.1_spec/target/apidocs/package-list = 1651652492000
