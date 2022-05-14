@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-activation_2.0_spec</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-M1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -210,4 +210,10 @@
         </profile>
     </profiles>
 
+    <repositories>
+        <repository>
+            <id>orgapachegeronimo-1153</id>
+            <url>https://repository.apache.org/content/repositories/orgapachegeronimo-1153/</url>
+        </repository>
+    </repositories>
 </project>
