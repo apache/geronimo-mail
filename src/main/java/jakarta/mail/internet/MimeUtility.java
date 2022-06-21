@@ -938,7 +938,7 @@ public class MimeUtility {
     /**
      * Load the default mapping tables used by the javaCharset()
      * and mimeCharset() methods.  By default, these tables are
-     * loaded from the /META-INF/jakartamail.charset.map file.  If
+     * loaded from the /META-INF/javamail.charset.map file.  If
      * something goes wrong loading that file, we configure things
      * with a default mapping table (which just happens to mimic
      * what's in the default mapping file).
@@ -950,7 +950,7 @@ public class MimeUtility {
 
         // normally, these come from a character map file contained in the jar file.
         try {
-            final InputStream map = MimeUtility.class.getResourceAsStream("/META-INF/jakartamail.charset.map");
+            final InputStream map = MimeUtility.class.getResourceAsStream("/META-INF/javamail.charset.map");
 
             if (map != null) {
                 // get a reader for this so we can load.
