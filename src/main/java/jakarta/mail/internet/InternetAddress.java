@@ -448,20 +448,7 @@ public class InternetAddress extends Address implements Cloneable {
      * @return a one-line String of comma-separated addresses
      */
     public static String toString(final Address[] addresses) {
-        if (addresses == null || addresses.length == 0) {
-            return null;
-        }
-        if (addresses.length == 1) {
-            return addresses[0].toString();
-        } else {
-            final StringBuffer buf = new StringBuffer(addresses.length * 32);
-            buf.append(addresses[0].toString());
-            for (int i = 1; i < addresses.length; i++) {
-                buf.append(", ");
-                buf.append(addresses[i].toString());
-            }
-            return buf.toString();
-        }
+        return toString(addresses, 0);
     }
 
     /**
@@ -488,7 +475,7 @@ public class InternetAddress extends Address implements Cloneable {
         } else {
             final StringBuffer buf = new StringBuffer(addresses.length * 32);
             for (int i = 0; i < addresses.length; i++) {
-                final String s = addresses[1].toString();
+                final String s = addresses[i].toString();
                 if (i == 0) {
                     if (used + s.length() + 1 > 72) {
                         buf.append("\r\n  ");

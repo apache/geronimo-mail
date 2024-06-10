@@ -44,6 +44,35 @@ public class MimeMessageTest extends TestCase {
     private CommandMap defaultMap;
     private Session session;
 
+    public void testNoDuplicateTo() throws MessagingException, IOException {
+        final InternetAddress[] addresses = new InternetAddress[]{
+                new InternetAddress("test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com"),
+                new InternetAddress("test2@example.com"),
+                new InternetAddress("test3@example.com")
+        };
+        {
+            final MimeMessage msg = new MimeMessage(session);
+            msg.setContent("Hello World", "text/plain");
+            msg.setRecipients(Message.RecipientType.TO, addresses);
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            msg.writeTo(out);
+
+            final String textMessage = new String(out.toByteArray());
+            assertTrue(textMessage, textMessage.contains(
+                    "To: \r\n" +
+                    "  test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com,\r\n" +
+                    "  test2@example.com, test3@example.com"));
+
+        }
+        {
+            final String actual = InternetAddress.toString(addresses, MimeMessage.RecipientType.TO.toString().length() + 2);
+
+            assertEquals("\r\n" +
+                    "  test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com,\r\n" +
+                    "  test2@example.com, test3@example.com", actual);
+        }
+    }
+
     public void testWriteTo() throws MessagingException, IOException {
         final MimeMessage msg = new MimeMessage(session);
         msg.setSender(new InternetAddress("foo"));

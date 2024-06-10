@@ -39,7 +39,39 @@ import jakarta.mail.MessagingException;
  */
 public class InternetHeaders {
     // the list of headers (to preserve order);
-    protected List<InternetHeader> headers = new ArrayList();
+    // From RFC822, outside Received and Return-Path, there should be no duplicate header otherwise, it's probably a
+    // bug on our side. CC and BCC could theoretically be present multiple times, even though it's more common to
+    // have one with multiple address similar to.
+    protected List<InternetHeader> headers = new ArrayList<InternetHeader>() {
+        @Override
+        public boolean add(final InternetHeader o) {
+            if ("Received".equals(o.getName()) || "Return-Path".equals(o.getName())) {
+                super.add(o);
+            }
+            assertNoDuplicates(o);
+            return super.add(o);
+        }
+
+        private void assertNoDuplicates(final InternetHeader o) {
+            for (InternetHeader header : this) {
+                if (header.getName() != null && header.getName().equalsIgnoreCase(o.getName())) {
+                    if (header.getValue() != null && !header.getValue().isEmpty()) {
+                        throw new IllegalStateException("InternetHeaders cannot contain more than one value for header: " + o.getName());
+                    }
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void add(final int index, final InternetHeader o) {
+            if ("Received".equals(o.getName()) || "Return-Path".equals(o.getName())) {
+                super.add(o);
+            }
+            assertNoDuplicates(o);
+            super.add(index, o);
+        }
+    };
 
     /**
      * Create an empty InternetHeaders
@@ -383,7 +415,7 @@ public class InternetHeaders {
             if (pos != -1) {
                 // this could be a placeholder header with a null value.  If it is, just update
                 // the value.  Otherwise, insert in front of the existing header.
-                final InternetHeader oldHeader = (InternetHeader)headers.get(pos);
+                final InternetHeader oldHeader = headers.get(pos);
                 if (oldHeader.getValue() == null) {
                     oldHeader.setValue(value);
                 }
@@ -403,7 +435,7 @@ public class InternetHeaders {
 
             // either insert before an existing header, or insert at the very beginning
             if (pos != -1) {
-                final InternetHeader oldHeader = (InternetHeader)headers.get(pos);
+                final InternetHeader oldHeader = headers.get(pos);
                 // if the existing header is a place holder, we can just update the value
                 if (oldHeader.getValue() == null) {
                     oldHeader.setValue(value);
@@ -446,7 +478,7 @@ public class InternetHeaders {
         final int pos = findHeader(name);
 
         if (pos != -1) {
-            final InternetHeader oldHeader = (InternetHeader)headers.get(pos);
+            final InternetHeader oldHeader = headers.get(pos);
             // keep the header in the list, but with a null value
             oldHeader.setValue(null);
             // now remove all other headers with this name
@@ -464,7 +496,7 @@ public class InternetHeaders {
         final List<Header> result = new ArrayList<>();
 
         for (int i = 0; i < headers.size(); i++) {
-            final InternetHeader header = (InternetHeader)headers.get(i);
+            final InternetHeader header = headers.get(i);
             // we only include headers with real values, no placeholders
             if (header.getValue() != null) {
                 result.add(header);
@@ -508,7 +540,7 @@ public class InternetHeaders {
         final List<Header> result = new ArrayList<>();
 
         for (int i = 0; i < headers.size(); i++) {
-            final InternetHeader header = (InternetHeader)headers.get(i);
+            final InternetHeader header = headers.get(i);
             // we only include headers with real values, no placeholders
             if (header.getValue() != null) {
                 // only add the matching ones
@@ -528,7 +560,7 @@ public class InternetHeaders {
         final List<Header> result = new ArrayList<>();
 
         for (int i = 0; i < headers.size(); i++) {
-            final InternetHeader header = (InternetHeader)headers.get(i);
+            final InternetHeader header = headers.get(i);
             // we only include headers with real values, no placeholders
             if (header.getValue() != null) {
                 // only add the non-matching ones
@@ -565,7 +597,7 @@ public class InternetHeaders {
             final int size = headers.size();
             // it's possible that we have a leading blank line.
             if (size > 0) {
-                final InternetHeader header = (InternetHeader)headers.get(size - 1);
+                final InternetHeader header = headers.get(size - 1);
                 header.appendValue(line);
             }
         }
@@ -612,13 +644,7 @@ public class InternetHeaders {
         } else {
 
             // replace the first header
-            setHeader(name, addresses[0].toString());
-
-            // now add the rest as extra headers.
-            for (int i = 1; i < addresses.length; i++) {
-                final Address address = addresses[i];
-                addHeader(name, address.toString());
-            }
+            setHeader(name, InternetAddress.toString(addresses, name.length() + 2));
         }
     }
 
@@ -636,7 +662,7 @@ public class InternetHeaders {
         if (ignore == null) {
             // write out all header lines with non-null values
             for (int i = 0; i < headers.size(); i++) {
-                final InternetHeader header = (InternetHeader)headers.get(i);
+                final InternetHeader header = headers.get(i);
                 // we only include headers with real values, no placeholders
                 if (header.getValue() != null) {
                     header.writeTo(out);
@@ -646,7 +672,7 @@ public class InternetHeaders {
         else {
             // write out all matching header lines with non-null values
             for (int i = 0; i < headers.size(); i++) {
-                final InternetHeader header = (InternetHeader)headers.get(i);
+                final InternetHeader header = headers.get(i);
                 // we only include headers with real values, no placeholders
                 if (header.getValue() != null) {
                     if (!matchHeader(header.getName(), ignore)) {

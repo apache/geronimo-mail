@@ -442,6 +442,29 @@ public class InternetAddressTest extends TestCase {
         assertEquals(InternetAddress.getLocalAddress(session), new InternetAddress("tester@incubator.apache.org"));
     }
 
+    public void testToStringStaticHelper() throws AddressException {
+        final InternetAddress[] addresses = new InternetAddress[]{
+                new InternetAddress("test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com"),
+                new InternetAddress("test2@example.com"),
+                new InternetAddress("test3@example.com")
+        };
+        {
+            final String actual = InternetAddress.toString(addresses);
+
+            assertEquals("\r\n" +
+                    "  test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com,\r\n" +
+                    "  test2@example.com, test3@example.com", actual);
+        }
+        {
+            final String actual = InternetAddress.toString(addresses, MimeMessage.RecipientType.TO.toString().length() + 2);
+
+            assertEquals("\r\n" +
+                    "  test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com,\r\n" +
+                    "  test2@example.com, test3@example.com", actual);
+        }
+
+    }
+
     private InternetAddress[] getGroup(final String address, final boolean strict) throws AddressException
     {
         final InternetAddress group = new InternetAddress(address);

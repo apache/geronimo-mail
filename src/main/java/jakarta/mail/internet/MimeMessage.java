@@ -531,7 +531,8 @@ public class MimeMessage extends Message implements MimePart {
      * @exception MessagingException
      */
     public void addRecipients(final Message.RecipientType type, final String address) throws MessagingException {
-        addHeader(getHeaderForRecipientType(type), address);
+        final InternetAddress[] addresses = InternetAddress.parse(address, true);
+        addHeader(getHeaderForRecipientType(type), addresses);
     }
 
     /**
@@ -1696,8 +1697,34 @@ public class MimeMessage extends Message implements MimePart {
         }
     }
 
+    /**
+     * For addresses, it's a bit tricky, because there can be only one To/Cc/Bcc. Si if the header already exists with
+     * one or more address, we need to parse it first, create a new array and then set the header to avoid duplication
+     *
+     * @param header
+     * @param addresses
+     * @throws MessagingException
+     */
     private void addHeader(final String header, final Address[] addresses) throws MessagingException {
-        headers.addHeader(header, InternetAddress.toString(addresses));
+
+        if (addresses == null || addresses.length == 0) {
+            return;
+        }
+        final Address[] a = getHeaderAsInternetAddresses(header, true);
+        Address[] anew;
+        if (a == null || a.length == 0) {
+            anew = addresses;
+        } else {
+            anew = new Address[a.length + addresses.length];
+            System.arraycopy(a, 0, anew, 0, a.length);
+            System.arraycopy(addresses, 0, anew, a.length, addresses.length);
+        }
+        final String s = InternetAddress.toString(anew, header.length() + 2);
+        if (s == null) {
+            return;
+        }
+
+        setHeader(header, s);
     }
 
     private String getHeaderForRecipientType(final Message.RecipientType type) throws MessagingException {
