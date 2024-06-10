@@ -34,7 +34,7 @@
     <artifactId>geronimo-mail_2.1_spec</artifactId>
     <packaging>bundle</packaging>
     <name>Apache Geronimo Jakarta Mail Spec 2.1</name>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <description>Jakarta Mail 2.1 API Specification</description>
 
@@ -53,9 +53,9 @@
     </properties>
 
     <scm>
-        <connection>scm:svn:https://svn.apache.org/repos/asf/geronimo/specs/tags/geronimo-mail_2.1_spec-1.0.0</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/geronimo/specs/tags/geronimo-mail_2.1_spec-1.0.0</developerConnection>
-        <url>https://svn.apache.org/repos/asf/geronimo/specs/tags/geronimo-mail_2.1_spec-1.0.0</url>
+        <connection>scm:svn:https://svn.apache.org/repos/asf/geronimo/specs/trunk/geronimo-mail_2.1_spec</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/geronimo/specs/trunk/geronimo-mail_2.1_spec</developerConnection>
+        <url>https://svn.apache.org/repos/asf/geronimo/specs/trunk/geronimo-mail_2.1_spec</url>
     </scm>
 
     <dependencies>
