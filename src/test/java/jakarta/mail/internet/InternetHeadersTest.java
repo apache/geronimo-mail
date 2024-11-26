@@ -43,4 +43,29 @@ public class InternetHeadersTest extends TestCase {
     protected void setUp() throws Exception {
         headers = new InternetHeaders();
     }
+
+
+    public void testReturnPathHeaderIgnored() throws MessagingException {
+        headers.addHeader("Return-Path", "first");
+        headers.addHeader("Return-Path", "second");
+    }
+
+    public void testReceivedHeaderIgnored() throws MessagingException {
+        headers.addHeader("Received", "first");
+        headers.addHeader("Received", "second");
+    }
+
+    public void testOtherHeaderNotDuplicated() throws MessagingException {
+        headers.addHeader("Other", "first");
+    }
+
+    public void testActuallyDuplicatedHeader() throws MessagingException {
+        headers.addHeader("Other", "first");
+        try {
+            headers.addHeader("Other", "second");
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+            assertEquals("InternetHeaders cannot contain more than one value for header: Other", e.getMessage());
+        }
+    }
 }
