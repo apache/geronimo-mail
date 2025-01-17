@@ -33,13 +33,6 @@
         Geronimo Mail Bundle.
     </description>
 
-    <scm>
-        <connection>scm:git:https://gitbox.apache.org/repos/asf/geronimo-javamail.git</connection>
-        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/geronimo-javamail.git</developerConnection>
-        <url>https://gitbox.apache.org/repos/asf/geronimo-javamail.git</url>
-        <tag>HEAD</tag>
-    </scm>
-
     <properties>
         <siteId>javamail/${project.artifactId}</siteId>
         <projectName>Apache Geronimo Mail Bundle</projectName>
