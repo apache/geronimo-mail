@@ -32,7 +32,7 @@
 
     <artifactId>geronimo-mail_2.1_mail</artifactId>
     <packaging>bundle</packaging>
-    <name>Geronimo Jakarta Mail 2.1 :: Mail</name>
+    <name>Apache Geronimo Jakarta Mail 2.1 :: Impl :: Mail</name>
 
     <dependencies>
         <dependency>
@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-mail_2.1_spec</artifactId>
-            <version>${geronimo-mail_2.1_spec.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>

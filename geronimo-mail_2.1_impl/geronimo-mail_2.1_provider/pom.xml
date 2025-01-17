@@ -24,7 +24,7 @@
 
     <artifactId>geronimo-mail_2.1_provider</artifactId>
     <packaging>bundle</packaging>
-    <name>Geronimo Mail 2.1 :: Provider</name>
+    <name>Apache Geronimo Jakarta Mail 2.1 :: Impl :: Provider</name>
 
     <properties>
         <james.version>3.0-beta4</james.version>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-mail_2.1_spec</artifactId>
-            <version>${geronimo-mail_2.1_spec.version}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>apache-mime4j-core</artifactId>
