@@ -34,7 +34,7 @@ github:
     - jakartaee
 
 notifications:
-  commits:      commits@geronimo.apache.org
+  commits:      scm@geronimo.apache.org
   issues:       dev@geronimo.apache.org
   pullrequests_status: dev@geronimo.apache.org
   pullrequests_comment: dev@geronimo.apache.org
