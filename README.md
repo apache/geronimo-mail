@@ -5,7 +5,7 @@ Building
 To build you will need:
 
  * J2SE SDK 1.8+
- * Maven 3.0.6
+ * Maven 3.9.x
 
 To build all changes incrementally:
 
