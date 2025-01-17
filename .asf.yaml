@@ -1,0 +1,41 @@
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+## See https://s.apache.org/asfyaml
+
+github:
+  description: "Apache Geronimo Mail"
+  homepage: https://opennlp.apache.org/
+  protected_branches:
+    # Prevent force pushes to primary branches
+    main: {}
+  autolink_jira:
+    - GERONIMO
+  custom_subjects:
+    new_pr: "[PR] {title} ({repository})"
+    close_pr: "Re: [PR] {title} ({repository})"
+    comment_pr: "Re: [PR] {title} ({repository})"
+    diffcomment: "Re: [PR] {title} ({repository})"
+    merge_pr: "Re: [PR] {title} ({repository})"
+    new_issue: "[I] {title} ({repository})"
+    comment_issue: "Re: [I] {title} ({repository})"
+    close_issue: "Re: [I] {title} ({repository})"
+    catchall: "[GH] {title} ({repository})"
+    new_discussion: "[D] {title} ({repository})"
+    edit_discussion: "Re: [D] {title} ({repository})"
+    close_discussion: "Re: [D] {title} ({repository})"
+    close_discussion_with_comment: "Re: [D] {title} ({repository})"
+    reopen_discussion: "Re: [D] {title} ({repository})"
+    new_comment_discussion: "Re: [D] {title} ({repository})"
+    edit_comment_discussion: "Re: [D] {title} ({repository})"
+    delete_comment_discussion: "Re: [D] {title} ({repository})"
+  labels:
+    - apache
+    - geronimo
+    - jakartaee
+
+notifications:
+  commits:      commits@geronimo.apache.org
+  issues:       dev@geronimo.apache.org
+  pullrequests_status: dev@geronimo.apache.org
+  pullrequests_comment: dev@geronimo.apache.org
+  jira_options: link worklog
