@@ -17,6 +17,7 @@
 
 package org.apache.geronimo.mail.util;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -637,8 +638,8 @@ public class MailConnection {
         // now set up the input/output streams.
         inputStream = new TraceInputStream(socket.getInputStream(), debugStream, debug, props.getBooleanProperty(
                 MAIL_ENCODE_TRACE, false));
-        outputStream = new TraceOutputStream(socket.getOutputStream(), debugStream, debug, props.getBooleanProperty(
-                MAIL_ENCODE_TRACE, false));
+        outputStream = new BufferedOutputStream(new TraceOutputStream(socket.getOutputStream(), debugStream, debug, props.getBooleanProperty(
+                MAIL_ENCODE_TRACE, false)));
     }
     
 
