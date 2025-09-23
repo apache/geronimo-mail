@@ -32,7 +32,7 @@
 
     <groupId>org.apache.geronimo</groupId>
     <artifactId>geronimo-mail_2.1_parent</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
 
     <packaging>pom</packaging>
 
@@ -43,7 +43,7 @@
         <connection>scm:git:https://gitbox.apache.org/repos/asf/geronimo-mail.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/geronimo-mail.git</developerConnection>
         <url>http://gitbox.apache.org/repos/asf/geronimo-mail.git</url>
-        <tag>HEAD</tag>
+        <tag>geronimo-mail_2.1_parent-1.0.2</tag>
     </scm>
 
     <issueManagement>
