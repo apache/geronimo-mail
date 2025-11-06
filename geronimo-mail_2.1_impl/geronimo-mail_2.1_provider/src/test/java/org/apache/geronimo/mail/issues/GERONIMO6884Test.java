@@ -32,6 +32,7 @@ import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
@@ -39,7 +40,7 @@ import java.util.Properties;
 import static org.junit.Assert.assertArrayEquals;
 
 public class GERONIMO6884Test extends AbstractProtocolTest {
-    public void testGERONIMO6884() throws Exception {
+    public void testGERONIMO6884_0() throws Exception {
 
         final MimeBodyPart messageBodyPart = new MimeBodyPart();
         messageBodyPart.setText("Text body!");
@@ -74,6 +75,63 @@ public class GERONIMO6884Test extends AbstractProtocolTest {
         }
         assertArrayEquals(bytes, attachmentBytes);
     }
+
+    public void testGERONIMO6884_1() throws Exception {
+
+        final MimeBodyPart messageBodyPart = new MimeBodyPart();
+        messageBodyPart.setText("Text body!");
+
+        // Use just 1 byte to trigger the "small buffer" case
+        byte[] bytes = new byte[] { 42 }; // any value works
+
+        final MimeBodyPart attachmentPart = new MimeBodyPart();
+        attachmentPart.setDataHandler(new DataHandler(new ByteArrayDataSource(bytes, "image/png")));
+        attachmentPart.setHeader("Content-Transfer-Encoding", "base64"); // crucial
+
+        final Multipart multipart = new MimeMultipart();
+        multipart.addBodyPart(messageBodyPart);
+        multipart.addBodyPart(attachmentPart);
+
+        final Message message = sendAndGetMessage(multipart);
+        final MimeMultipart content = (MimeMultipart) message.getContent();
+        final BodyPart attachment = content.getBodyPart(1);
+
+        final InputStream is = (InputStream) attachment.getContent();
+        byte[] attachmentBytes;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            attachmentBytes = baos.toByteArray();
+        }
+        assertArrayEquals(bytes, attachmentBytes);
+    }
+
+    public void testGERONIMO6884_2() throws Exception {
+
+        final MimeBodyPart messageBodyPart = new MimeBodyPart();
+        messageBodyPart.setText("Text body!");
+
+        // Use just 1 byte to trigger the "small buffer" case
+        byte[] bytes = new byte[]{42}; // any value works
+
+        final MimeBodyPart attachmentPart = new MimeBodyPart(new ByteArrayInputStream(bytes));
+
+        final Multipart multipart = new MimeMultipart();
+        multipart.addBodyPart(messageBodyPart);
+        multipart.addBodyPart(attachmentPart);
+
+        final Message message = sendAndGetMessage(multipart);
+
+        final MimeMultipart content = (MimeMultipart) message.getContent();
+        final BodyPart attachment = content.getBodyPart(1);
+
+        final Object o = attachment.getContent();
+        assertNotNull(o); //this will be an empty string
+    }
+
 
     private Message sendAndGetMessage(Multipart multipart) throws Exception {
 
