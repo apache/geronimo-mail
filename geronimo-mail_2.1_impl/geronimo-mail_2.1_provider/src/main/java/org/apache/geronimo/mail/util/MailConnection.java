@@ -358,18 +358,18 @@ public class MailConnection {
                 // now that we have the factory, there are two different createSocket() calls we use,
                 // depending on whether we have a localAddress override.
 
-                Object defFactory = null;
+                Object defFactory;
                 try {
                 	defFactory = factoryClass.newInstance();
                 } catch (Throwable t) {
                 	Method getDefault = factoryClass.getMethod("getDefault", new Class[0]); //TODO check instantiation of socket factory
                 	defFactory = getDefault.invoke(new Object(), new Object[0]);                    	
+
+                	if (defFactory == null) {
+                    	throw new Exception("Can not create factory class '" + factoryClass.getName() + "' neither by creating a new instance or using getDefault()", t);
+                    }
                 }
-                
-                if (defFactory == null) {
-                	throw new Exception("Can not create factory class " + factoryClass.getName());
-                }
-                
+                                
                 if (localAddress != null && !layer) {
                     // retrieve the createSocket(String, int, InetAddress, int) method.
                     Class[] createSocketSig = new Class[] { String.class, Integer.TYPE, InetAddress.class, Integer.TYPE };
