@@ -4,7 +4,7 @@ Building
 
 To build you will need:
 
- * J2SE SDK 1.8+
+ * JDK 1.8+
  * Maven 3.9.x
 
 To build all changes incrementally:
@@ -35,7 +35,7 @@ To support TLSv1+ the following property can be set:
 
 ```
 mail.smtp.ssl.protocols=TLSv1 TLSv1.1 TLSv1.2 TLSv1.3
-``
+```
 
 ## Using a Custom SSL Socket Factory (via Reflection)
 
@@ -46,7 +46,7 @@ This allows full control of supported cyphers or protocols.
 
 ```
 mail.smtp.ssl.socketFactory.class=my.custom.CustomSSLSocketFactory
-``
+```
 
 ## Using a Custom SSL Socket Factory (as pre-configured instance)
 
@@ -70,7 +70,7 @@ To support only `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` the follow
 
 ```
 mail.smtp.ssl.ciphersuites=TLS_AES_128_GCM_SHA256 TLS_AES_256_GCM_SHA384
-``
+```
 
 ## Using a Custom SSL Socket Factory (via Reflection)
 
@@ -81,7 +81,7 @@ This allows full control of supported cyphers or protocols.
 
 ```
 mail.smtp.ssl.socketFactory.class=my.custom.CustomSSLSocketFactory
-``
+```
 
 ## Using a Custom SSL Socket Factory (as pre-configured instance)
 
