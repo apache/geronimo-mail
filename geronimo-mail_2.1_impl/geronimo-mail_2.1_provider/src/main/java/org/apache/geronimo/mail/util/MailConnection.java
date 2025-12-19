@@ -360,7 +360,7 @@ public class MailConnection {
 
                 Object defFactory;
                 try {
-                	defFactory = factoryClass.newInstance();
+                	defFactory = factoryClass.getConstructor().newInstance();
                 } catch (Throwable t) {
                 	Method getDefault = factoryClass.getMethod("getDefault", new Class[0]); //TODO check instantiation of socket factory
                 	defFactory = getDefault.invoke(new Object(), new Object[0]);                    	
