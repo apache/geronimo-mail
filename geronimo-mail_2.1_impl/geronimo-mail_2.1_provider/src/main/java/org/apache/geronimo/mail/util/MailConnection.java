@@ -661,7 +661,12 @@ public class MailConnection {
     public void closeServerConnection()
     {
         try {
-            socket.close();
+            if (outputStream != null) {
+                outputStream.flush();
+            }
+            if(socket != null) {
+                socket.close();
+            }
         } catch (IOException ignored) {
         }
 
