@@ -372,6 +372,7 @@ public class NNTPConnection extends MailConnection {
             mimeOut.writeSMTPTerminator();
             // and flush the data to send it along
             mimeOut.flush();
+            this.outputStream.flush(); // most of the time MIMEOutputStream#flush does nothing so ensure we actually flush the data
         } catch (IOException e) {
             throw new MessagingException("I/O error posting message", e);
         } catch (MessagingException e) {
