@@ -52,20 +52,20 @@
             <dependency>
                 <groupId>org.apache.geronimo.specs</groupId>
                 <artifactId>geronimo-activation_2.0_spec</artifactId>
-                <version>1.0.0-M1</version>
+                <version>1.0.0</version>
             </dependency>
 
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.13.1</version>
+                <version>4.13.2</version>
             </dependency>
 
             <!-- INTERNAL -->
             <dependency>
                 <groupId>org.apache.geronimo.specs</groupId>
                 <artifactId>geronimo-osgi-locator</artifactId>
-                <version>1.0</version>
+                <version>1.1</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>
@@ -74,6 +74,12 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>5.1.9</version>
+                </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
@@ -158,9 +164,9 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <!-- Allow any Java >= 1.8 -->
+                                <!-- Allow any Java >= 11 -->
                                 <requireJavaVersion>
-                                    <version>[1.8,)</version>
+                                    <version>[11,)</version>
                                 </requireJavaVersion>
 
                                 <!-- Allow any Maven >= 2.0.7 -->

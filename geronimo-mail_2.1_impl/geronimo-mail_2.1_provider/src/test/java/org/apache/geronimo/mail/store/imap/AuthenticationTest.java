@@ -33,7 +33,7 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.geronimo.mail.util.Base64;
-import org.apache.james.protocols.lib.PortUtil;
+import org.apache.geronimo.mail.testserver.MailServer;
 
 public class AuthenticationTest extends TestCase {
 
@@ -49,7 +49,7 @@ public class AuthenticationTest extends TestCase {
     
     public void testAuthenticatePlain() throws Exception {
 
-        final int listenerPort = PortUtil.getNonPrivilegedPort();
+        final int listenerPort = MailServer.acquirePort();
         //greenmail does not have AUTHENTICATE "PLAIN" support
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer(null, "user", "pass");
         fs.startServer(listenerPort);
@@ -69,7 +69,7 @@ public class AuthenticationTest extends TestCase {
 
     public void testAuthenticatePlainFail() throws Exception {
 
-        final int listenerPort = PortUtil.getNonPrivilegedPort();
+        final int listenerPort = MailServer.acquirePort();
         //greenmail does not have AUTHENTICATE "PLAIN" support
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer(null, "user", "pass");
         fs.startServer(listenerPort);
@@ -92,7 +92,7 @@ public class AuthenticationTest extends TestCase {
 
     public void testAuthenticatePlainAuthzid() throws Exception {
 
-        final int listenerPort = PortUtil.getNonPrivilegedPort();
+        final int listenerPort = MailServer.acquirePort();
         //greenmail does not have AUTHENTICATE "PLAIN" support
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("authzid", "user", "pass");
         fs.startServer(listenerPort);
@@ -113,7 +113,7 @@ public class AuthenticationTest extends TestCase {
 
 
     public void testAuthenticateOAuth2() throws Exception {
-        final int listenerPort = PortUtil.getNonPrivilegedPort();
+        final int listenerPort = MailServer.acquirePort();
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("", "user", "token");
         fs.startServer(listenerPort);
         // Setup mail session
@@ -140,7 +140,7 @@ public class AuthenticationTest extends TestCase {
     }
 
     public void testAuthenticateOAuth2Fail() throws Exception {
-        final int listenerPort = PortUtil.getNonPrivilegedPort();
+        final int listenerPort = MailServer.acquirePort();
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("", "user", "token");
         fs.startServer(listenerPort);
         // Setup mail session

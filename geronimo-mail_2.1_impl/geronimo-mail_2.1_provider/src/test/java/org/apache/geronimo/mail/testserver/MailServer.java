@@ -16,177 +16,165 @@
  */
 package org.apache.geronimo.mail.testserver;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
-import javax.mail.Flags;
-import javax.mail.internet.MimeMessage;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.apache.commons.configuration.DefaultConfigurationBuilder;
+import jakarta.mail.internet.MimeMessage;
+
+import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
+import org.apache.james.UserEntityValidator;
+import org.apache.james.core.Domain;
+import org.apache.james.core.Username;
 import org.apache.james.dnsservice.api.DNSService;
-import org.apache.james.domainlist.api.DomainListException;
-import org.apache.james.domainlist.api.mock.SimpleDomainList;
-import org.apache.james.filesystem.api.mock.MockFileSystem;
+import org.apache.james.domainlist.api.DomainList;
+import org.apache.james.domainlist.lib.DomainListConfiguration;
+import org.apache.james.domainlist.memory.MemoryDomainList;
+import org.apache.james.filesystem.api.FileSystem;
 import org.apache.james.imap.encode.main.DefaultImapEncoderFactory;
-import org.apache.james.imap.encode.main.DefaultLocalizer;
 import org.apache.james.imap.main.DefaultImapDecoderFactory;
+import org.apache.james.imap.processor.fetch.FetchProcessor;
 import org.apache.james.imap.processor.main.DefaultImapProcessorFactory;
 import org.apache.james.imapserver.netty.IMAPServer;
+import org.apache.james.imapserver.netty.ImapMetrics;
+import org.apache.james.mailbox.Authorizator;
+import org.apache.james.mailbox.MailboxManager;
 import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.MessageManager;
-import org.apache.james.mailbox.acl.GroupMembershipResolver;
-import org.apache.james.mailbox.acl.MailboxACLResolver;
-import org.apache.james.mailbox.acl.SimpleGroupMembershipResolver;
-import org.apache.james.mailbox.acl.UnionMailboxACLResolver;
-import org.apache.james.mailbox.inmemory.InMemoryMailboxSessionMapperFactory;
-import org.apache.james.mailbox.model.MailboxConstants;
+import org.apache.james.mailbox.inmemory.InMemoryMailboxManager;
+import org.apache.james.mailbox.inmemory.manager.InMemoryIntegrationResources;
 import org.apache.james.mailbox.model.MailboxPath;
-import org.apache.james.mailbox.store.Authenticator;
-import org.apache.james.mailbox.store.StoreMailboxManager;
-import org.apache.james.mailrepository.mock.MockMailRepositoryStore;
+import org.apache.james.mailbox.store.StoreSubscriptionManager;
+import org.apache.james.mailrepository.api.MailRepositoryStore;
+import org.apache.james.mailrepository.api.Protocol;
+import org.apache.james.mailrepository.memory.MailRepositoryStoreConfiguration;
+import org.apache.james.mailrepository.memory.MemoryMailRepository;
+import org.apache.james.mailrepository.memory.MemoryMailRepositoryStore;
+import org.apache.james.mailrepository.memory.MemoryMailRepositoryUrlStore;
+import org.apache.james.mailrepository.memory.SimpleMailRepositoryLoader;
+import org.apache.james.metrics.api.MetricFactory;
+import org.apache.james.metrics.api.NoopGaugeRegistry;
+import org.apache.james.metrics.tests.RecordingMetricFactory;
+import org.apache.james.pop3server.mailbox.DefaultMailboxAdapterFactory;
+import org.apache.james.pop3server.mailbox.MailboxAdapterFactory;
 import org.apache.james.pop3server.netty.POP3Server;
-import org.apache.james.protocols.lib.PortUtil;
 import org.apache.james.protocols.lib.mock.MockProtocolHandlerLoader;
 import org.apache.james.queue.api.MailQueue;
-import org.apache.james.queue.api.MailQueue.MailQueueItem;
 import org.apache.james.queue.api.MailQueueFactory;
-import org.apache.james.queue.file.FileMailQueueFactory;
+import org.apache.james.queue.api.RawMailQueueItemDecoratorFactory;
+import org.apache.james.queue.memory.MemoryMailQueueFactory;
+import org.apache.james.rrt.api.AliasReverseResolver;
+import org.apache.james.rrt.api.CanSendFrom;
 import org.apache.james.rrt.api.RecipientRewriteTable;
-import org.apache.james.rrt.api.RecipientRewriteTableException;
+import org.apache.james.rrt.api.RecipientRewriteTableConfiguration;
+import org.apache.james.rrt.lib.AliasReverseResolverImpl;
+import org.apache.james.rrt.lib.CanSendFromImpl;
+import org.apache.james.rrt.memory.MemoryRecipientRewriteTable;
+import org.apache.james.server.core.filesystem.FileSystemImpl;
 import org.apache.james.smtpserver.netty.SMTPServer;
+import org.apache.james.smtpserver.netty.SmtpMetricsImpl;
+import org.apache.james.user.api.UsersRepository;
 import org.apache.james.user.api.UsersRepositoryException;
-import org.apache.james.user.lib.mock.MockUsersRepository;
-import org.apache.mailet.HostAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.james.user.memory.MemoryUsersRepository;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
+
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 //James based POP3 or IMAP or SMTP server (for unittesting only)
 public class MailServer {
 
+    public static final String USER = "serveruser";
+    public static final String PASSWORD = "serverpass";
+
     private POP3Server pop3Server;
     private IMAPServer imapServer;
     private SMTPServer smtpServer;
-    private AlterableDNSServer dnsServer;
-    private final MockUsersRepository usersRepository = new MockUsersRepository();
-    private final MockFileSystem fileSystem = new MockFileSystem();
-    private MockProtocolHandlerLoader protocolHandlerChain;
-    private StoreMailboxManager<Long> mailboxManager;
 
-    private MockMailRepositoryStore store;
-    private DNSService dnsService;
-    private MailQueueFactory queueFactory;
-    private MailQueue queue;
+    private AlterableDNSServer dnsServer;
+    private MemoryDomainList domainList;
+    private MemoryUsersRepository usersRepository;
+    private FileSystemImpl fileSystem;
+    private MockProtocolHandlerLoader protocolHandlerChain;
+    private InMemoryIntegrationResources memoryIntegrationResources;
+    private InMemoryMailboxManager mailboxManager;
+    private MemoryMailRepositoryStore mailRepositoryStore;
+    private MemoryRecipientRewriteTable rewriteTable;
+    private MemoryMailQueueFactory queueFactory;
+    private MemoryMailQueueFactory.MemoryCacheableMailQueue queue;
+    private Disposable fetcher;
+
     private final Semaphore sem = new Semaphore(0);
-    private final Logger log = LoggerFactory.getLogger("Mock");
 
     public void ensureMsgCount(final int count) throws InterruptedException {
         sem.acquire(count);
-    }
-
-    private class Fetcher extends Thread {
-
-        private final MailQueue queue;
-        private final MessageManager mailbox;
-        private final MailboxSession session;
-
-        Fetcher(final MailQueue queue, final MessageManager mailbox, final MailboxSession session) {
-            super();
-            this.queue = queue;
-            this.mailbox = mailbox;
-            this.session = session;
-        }
-
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    System.out.println("Await new mail ...");
-                    final MailQueueItem item = queue.deQueue();
-                    System.out.println("got it");
-                    final MimeMessage msg = item.getMail().getMessage();
-                    final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                    msg.writeTo(bout);
-                    mailbox.appendMessage(new ByteArrayInputStream(bout.toByteArray()), new Date(), session, true, new Flags());
-                    item.done(true);
-                    sem.release();
-                    System.out.println("mail copied over");
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-        }
-
-    }
-
-    public MailServer() {
-        super();
-        try {
-            usersRepository.addUser("serveruser", "serverpass");
-        } catch (final UsersRepositoryException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
     public void start(final SmtpTestConfiguration smtpConfig, final Pop3TestConfiguration pop3Config, final ImapTestConfiguration imapConfig)
             throws Exception {
         setUpServiceManager();
 
-        imapServer = new IMAPServer();
+        final RecordingMetricFactory metricFactory = new RecordingMetricFactory();
 
-        imapServer.setImapEncoder(DefaultImapEncoderFactory.createDefaultEncoder(new DefaultLocalizer(), false));
-        imapServer.setImapDecoder(DefaultImapDecoderFactory.createDecoder());
+        smtpServer = new SMTPServer(new SmtpMetricsImpl(metricFactory));
+        smtpServer.setDnsService(dnsServer);
+        smtpServer.setFileSystem(fileSystem);
+        smtpServer.setProtocolHandlerLoader(protocolHandlerChain);
 
         pop3Server = new POP3Server();
+        pop3Server.setFileSystem(fileSystem);
         pop3Server.setProtocolHandlerLoader(protocolHandlerChain);
 
-        smtpServer = new SMTPServer() {
-            @Override
-            protected Class<? extends org.apache.james.protocols.lib.handler.HandlersPackage> getJMXHandlersPackage() {
-                return RefinedJMXHandlersLoader.class;
-            };
-
-        };
-        smtpServer.setProtocolHandlerLoader(protocolHandlerChain);
-        smtpServer.setDNSService(dnsServer);
-
+        imapServer = new IMAPServer(
+                new DefaultImapDecoderFactory().buildImapDecoder(),
+                new DefaultImapEncoderFactory().buildImapEncoder(),
+                DefaultImapProcessorFactory.createXListSupportingProcessor(
+                        mailboxManager,
+                        memoryIntegrationResources.getEventBus(),
+                        new StoreSubscriptionManager(mailboxManager.getMapperFactory(),
+                                mailboxManager.getMapperFactory(),
+                                mailboxManager.getEventBus()),
+                        null,
+                        memoryIntegrationResources.getQuotaManager(),
+                        memoryIntegrationResources.getQuotaRootResolver(),
+                        metricFactory,
+                        FetchProcessor.LocalCacheConfiguration.DEFAULT),
+                new ImapMetrics(metricFactory),
+                new NoopGaugeRegistry(),
+                ImmutableSet.of());
         imapServer.setFileSystem(fileSystem);
-        pop3Server.setFileSystem(fileSystem);
-        smtpServer.setFileSystem(fileSystem);
 
-        imapServer.setLog(log);
-        pop3Server.setLog(log);
-        smtpServer.setLog(log);
-
-        final MailboxPath mailboxPath = new MailboxPath(MailboxConstants.USER_NAMESPACE, "serveruser", "INBOX");
-        final MailboxSession session = mailboxManager.login("serveruser", "serverpass", LoggerFactory.getLogger("Test"));
-
-        if (!mailboxManager.mailboxExists(mailboxPath, session)) {
+        final MailboxSession session = mailboxManager.createSystemSession(Username.of(USER));
+        final MailboxPath mailboxPath = MailboxPath.inbox(session);
+        if (!Mono.from(mailboxManager.mailboxExists(mailboxPath, session)).block()) {
             mailboxManager.createMailbox(mailboxPath, session);
         }
+        final MessageManager mailbox = mailboxManager.getMailbox(mailboxPath, session);
 
-        imapServer.setImapProcessor(DefaultImapProcessorFactory.createXListSupportingProcessor(mailboxManager, null, null));//new StoreSubscriptionManager(new InMemoryMailboxSessionMapperFactory()), null));
-
-        //setupTestMails(session, mailboxManager.getMailbox(mailboxPath, session));
-
-        new Fetcher(queue, mailboxManager.getMailbox(mailboxPath, session), session).start();
+        fetcher = Flux.from(queue.deQueue())
+                .publishOn(Schedulers.boundedElastic())
+                .subscribe(item -> deliver(item, mailbox, session));
 
         smtpConfig.init();
         pop3Config.init();
@@ -202,7 +190,29 @@ public class MailServer {
 
     }
 
+    private void deliver(final MailQueue.MailQueueItem item, final MessageManager mailbox, final MailboxSession session) {
+        try {
+            final MimeMessage msg = item.getMail().getMessage();
+            final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            msg.writeTo(bout);
+            mailbox.appendMessage(MessageManager.AppendCommand.builder().recent().build(bout.toByteArray()), session);
+            item.done(MailQueue.MailQueueItem.CompletionStatus.SUCCESS);
+            sem.release();
+        } catch (final Exception e) {
+            e.printStackTrace();
+            try {
+                item.done(MailQueue.MailQueueItem.CompletionStatus.RETRY);
+            } catch (final Exception ignored) {
+                // nothing left to do
+            }
+        }
+    }
+
     public void stop() throws Exception {
+
+        if (fetcher != null) {
+            fetcher.dispose();
+        }
 
         if (protocolHandlerChain != null) {
             protocolHandlerChain.dispose();
@@ -222,129 +232,72 @@ public class MailServer {
 
     }
 
-    /* protected void setupTestMailsx(MailboxSession session, MessageManager mailbox) throws MailboxException {
-         mailbox.appendMessage(new ByteArrayInputStream(content), new Date(), session, true, new Flags());
-         byte[] content2 = ("EMPTY").getBytes();
-         mailbox.appendMessage(new ByteArrayInputStream(content2), new Date(), session, true, new Flags());
-     }*/
-
     protected void setUpServiceManager() throws Exception {
-        protocolHandlerChain = new MockProtocolHandlerLoader();
-        protocolHandlerChain.put("usersrepository", usersRepository);
-
-        final InMemoryMailboxSessionMapperFactory factory = new InMemoryMailboxSessionMapperFactory();
-        final MailboxACLResolver aclResolver = new UnionMailboxACLResolver();
-        final GroupMembershipResolver groupMembershipResolver = new SimpleGroupMembershipResolver();
-        mailboxManager = new StoreMailboxManager<Long>(factory, new Authenticator() {
-
-            public boolean isAuthentic(final String userid, final CharSequence passwd) {
-                try {
-                    return usersRepository.test(userid, passwd.toString());
-                } catch (final UsersRepositoryException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-        }, aclResolver, groupMembershipResolver);
-        mailboxManager.init();
-
-        protocolHandlerChain.put("mailboxmanager", mailboxManager);
-
-        protocolHandlerChain.put("fileSystem", fileSystem);
-
-        //smtp
         dnsServer = new AlterableDNSServer();
-        store = new MockMailRepositoryStore();
-        protocolHandlerChain.put("mailStore", store);
-        protocolHandlerChain.put("dnsservice", dnsServer);
-        protocolHandlerChain.put("org.apache.james.smtpserver.protocol.DNSService", dnsService);
 
-        protocolHandlerChain.put("recipientrewritetable", new RecipientRewriteTable() {
+        domainList = new MemoryDomainList(dnsServer);
+        domainList.configure(DomainListConfiguration.DEFAULT);
+        if (!domainList.containsDomain(Domain.of("localhost"))) {
+            domainList.addDomain(Domain.of("localhost"));
+        }
 
-            public void addRegexMapping(final String user, final String domain, final String regex) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
+        usersRepository = MemoryUsersRepository.withoutVirtualHosting(domainList);
+        usersRepository.addUser(Username.of(USER), PASSWORD);
 
-            public void removeRegexMapping(final String user, final String domain, final String regex)
-                    throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
+        memoryIntegrationResources = InMemoryIntegrationResources.builder()
+                .authenticator((userid, passwd) -> {
+                    try {
+                        return usersRepository.test(userid, passwd.toString());
+                    } catch (final UsersRepositoryException e) {
+                        e.printStackTrace();
+                        return Optional.empty();
+                    }
+                })
+                .fakeAuthorizator()
+                .inVmEventBus()
+                .defaultAnnotationLimits()
+                .defaultMessageParser()
+                .scanningSearchIndex()
+                .noPreDeletionHooks()
+                .storeQuotaManager()
+                .build();
+        mailboxManager = memoryIntegrationResources.getMailboxManager();
 
-            public void addAddressMapping(final String user, final String domain, final String address)
-                    throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
+        fileSystem = FileSystemImpl.forTestingWithConfigurationFromClasspath();
 
-            public void removeAddressMapping(final String user, final String domain, final String address)
-                    throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
+        final MemoryMailRepositoryUrlStore urlStore = new MemoryMailRepositoryUrlStore();
+        final MailRepositoryStoreConfiguration storeConfiguration = MailRepositoryStoreConfiguration.forItems(
+                new MailRepositoryStoreConfiguration.Item(
+                        ImmutableList.of(new Protocol("memory")),
+                        MemoryMailRepository.class.getName(),
+                        new BaseHierarchicalConfiguration()));
+        mailRepositoryStore = new MemoryMailRepositoryStore(urlStore, new SimpleMailRepositoryLoader(), storeConfiguration);
+        mailRepositoryStore.init();
 
-            public void addErrorMapping(final String user, final String domain, final String error) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
+        rewriteTable = new MemoryRecipientRewriteTable();
+        rewriteTable.setConfiguration(RecipientRewriteTableConfiguration.DEFAULT_ENABLED);
+        final AliasReverseResolver aliasReverseResolver = new AliasReverseResolverImpl(rewriteTable);
+        final CanSendFrom canSendFrom = new CanSendFromImpl(aliasReverseResolver);
 
-            public void removeErrorMapping(final String user, final String domain, final String error)
-                    throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
+        queueFactory = new MemoryMailQueueFactory(new RawMailQueueItemDecoratorFactory(), Clock.systemUTC());
+        queue = queueFactory.createQueue(MailQueueFactory.SPOOL);
 
-            public Collection<String> getUserDomainMappings(final String user, final String domain) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-
-            public void addMapping(final String user, final String domain, final String mapping) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-
-            public void removeMapping(final String user, final String domain, final String mapping) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-
-            public Map<String, Collection<String>> getAllMappings() throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-
-            public void addAliasDomainMapping(final String aliasDomain, final String realDomain) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-
-            public void removeAliasDomainMapping(final String aliasDomain, final String realDomain) throws RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-
-            public Collection<String> getMappings(final String user, final String domain) throws ErrorMappingException,
-            RecipientRewriteTableException {
-                throw new UnsupportedOperationException("Not implemented");
-            }
-        });
-
-        protocolHandlerChain.put("org.apache.james.smtpserver.protocol.DNSService", dnsService);
-
-        final FileMailQueueFactory ff = new FileMailQueueFactory();// MockMailQueueFactory();
-        ff.setLog(log);
-        ff.setFileSystem(fileSystem);
-        queueFactory = ff;
-
-        queue = queueFactory.getQueue(MailQueueFactory.SPOOL);
-        protocolHandlerChain.put("mailqueuefactory", queueFactory);
-        protocolHandlerChain.put("domainlist", new SimpleDomainList() {
-
-            @Override
-            public String getDefaultDomain() {
-                return "localhost";
-            }
-
-            @Override
-            public String[] getDomains() throws DomainListException {
-                return new String[] { "localhost" };
-            }
-
-            @Override
-            public boolean containsDomain(final String serverName) {
-                return "localhost".equals(serverName);
-            }
-        });
+        protocolHandlerChain = MockProtocolHandlerLoader.builder()
+                .put(binder -> binder.bind(DomainList.class).toInstance(domainList))
+                .put(binder -> binder.bind(Clock.class).toInstance(Clock.systemUTC()))
+                .put(binder -> binder.bind(new TypeLiteral<MailQueueFactory<?>>() {}).toInstance(queueFactory))
+                .put(binder -> binder.bind(RecipientRewriteTable.class).toInstance(rewriteTable))
+                .put(binder -> binder.bind(CanSendFrom.class).toInstance(canSendFrom))
+                .put(binder -> binder.bind(FileSystem.class).toInstance(fileSystem))
+                .put(binder -> binder.bind(MailRepositoryStore.class).toInstance(mailRepositoryStore))
+                .put(binder -> binder.bind(DNSService.class).toInstance(dnsServer))
+                .put(binder -> binder.bind(UsersRepository.class).toInstance(usersRepository))
+                .put(binder -> binder.bind(MailboxManager.class).annotatedWith(Names.named("mailboxmanager")).toInstance(mailboxManager))
+                .put(binder -> binder.bind(MailboxAdapterFactory.class).to(DefaultMailboxAdapterFactory.class))
+                .put(binder -> binder.bind(MetricFactory.class).toInstance(new RecordingMetricFactory()))
+                .put(binder -> binder.bind(UserEntityValidator.class).toInstance(UserEntityValidator.NOOP))
+                .put(binder -> binder.bind(Authorizator.class).toInstance((userId, otherUserId) -> Authorizator.AuthorizationState.ALLOWED))
+                .build();
 
     }
 
@@ -355,6 +308,14 @@ public class MailServer {
         return queue;
     }
 
+    public static int acquirePort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (final IOException e) {
+            throw new RuntimeException("Unable to allocate a free port", e);
+        }
+    }
+
     public static File getAbsoluteFilePathFromClassPath(final String fileNameFromClasspath) throws FileNotFoundException {
 
         File configFile = null;
@@ -362,34 +323,25 @@ public class MailServer {
         if (configURL != null) {
             try {
                 configFile = new File(configURL.toURI());
-            } catch (URISyntaxException e) {
+            } catch (final URISyntaxException e) {
                 configFile = new File(configURL.getPath());
             }
-
-            //Java 7 only
-            /*if(!configFile.exists()) {
-                try {
-                    configFile = Paths.get(configURL.toURI()).toFile();
-                } catch (URISyntaxException e) {
-                    throw new FileNotFoundException("Failed to load " + fileNameFromClasspath+ " due to "+e);
-                }
-            }*/
 
             if (configFile.exists()) {
                 return configFile;
             } else {
-                throw new FileNotFoundException("Cannot read from "+configFile.getAbsolutePath()+" (original resource was "+fileNameFromClasspath+", URL: "+configURL+"), because the file does not exist");
+                throw new FileNotFoundException("Cannot read from " + configFile.getAbsolutePath() + " (original resource was " + fileNameFromClasspath + ", URL: " + configURL + "), because the file does not exist");
             }
-            
+
         } else {
-            throw new FileNotFoundException("Failed to load " + fileNameFromClasspath+", because resource cannot be found within the classpath");
+            throw new FileNotFoundException("Failed to load " + fileNameFromClasspath + ", because resource cannot be found within the classpath");
         }
 
     }
 
-    public static abstract class AbstractTestConfiguration extends DefaultConfigurationBuilder {
+    public static abstract class AbstractTestConfiguration extends BaseHierarchicalConfiguration {
 
-        private final int listenerPort = PortUtil.getNonPrivilegedPort();
+        private final int listenerPort = acquirePort();
 
         /**
          * @return the listenerPort
@@ -403,7 +355,6 @@ public class MailServer {
             addProperty("tls.[@socketTLS]", enableSSL);
             addProperty("tls.keystore", "file://" + getAbsoluteFilePathFromClassPath("dummykeystore.jks").getAbsolutePath());
             addProperty("tls.secret", "123456");
-            addProperty("tls.provider", "org.bouncycastle.jce.provider.BouncyCastleProvider");
             return this;
         }
 
@@ -411,9 +362,9 @@ public class MailServer {
             addProperty("[@enabled]", true);
             addProperty("bind", "127.0.0.1:" + this.listenerPort);
             addProperty("connectiontimeout", "360000");
-            //addProperty("jmxName", getServertype().name()+"on"+this.listenerPort);
             addProperty("helloName", "jamesserver");
             addProperty("helloName.[@autodetect]", false);
+            addProperty("gracefulShutdown", false);
         }
 
     }
@@ -439,6 +390,7 @@ public class MailServer {
             super.init();
 
             addProperty("helloName", "imap on port " + getListenerPort());
+            addProperty("plainAuthDisallowed", false);
 
         }
 
@@ -449,7 +401,11 @@ public class MailServer {
         @Override
         public void init() {
             super.init();
-            addProperty("handlerchain.handler[@class]", RefinedSmtpCoreCmdHandlerLoader.class.getName());
+
+            addProperty("authorizedAddresses", "127.0.0.0/8");
+            addProperty("auth.requireSSL", false);
+            addProperty("verifyIdentity", false);
+            addProperty("handlerchain.[@coreHandlersPackage]", org.apache.james.smtpserver.CoreCmdHandlerLoader.class.getName());
 
         }
 
@@ -512,6 +468,7 @@ public class MailServer {
 
         private InetAddress localhostByName = null;
 
+        @Override
         public Collection<String> findMXRecords(final String hostname) {
             final List<String> res = new ArrayList<String>();
             if (hostname == null) {
@@ -523,14 +480,12 @@ public class MailServer {
             return res;
         }
 
-        public Iterator<HostAddress> getSMTPHostAddresses(final String domainName) {
-            throw new UnsupportedOperationException("Unimplemented mock service");
+        @Override
+        public Collection<InetAddress> getAllByName(final String host) throws UnknownHostException {
+            return ImmutableList.of(getByName(host));
         }
 
-        public InetAddress[] getAllByName(final String host) throws UnknownHostException {
-            return new InetAddress[] { getByName(host) };
-        }
-
+        @Override
         public InetAddress getByName(final String host) throws UnknownHostException {
             if (getLocalhostByName() != null) {
                 if ("127.0.0.1".equals(host)) {
@@ -551,13 +506,14 @@ public class MailServer {
             }
 
             if ("128.0.0.1".equals(host) || "192.168.0.1".equals(host) || "127.0.0.1".equals(host) || "127.0.0.0".equals(host)
-                    || "255.0.0.0".equals(host) || "255.255.255.255".equals(host)) {
+                    || "255.0.0.0".equals(host) || "255.255.255.255".equals(host) || "localhost".equals(host)) {
                 return InetAddress.getByName(host);
             }
 
             throw new UnsupportedOperationException("getByName not implemented in mock for host: " + host);
         }
 
+        @Override
         public Collection<String> findTXTRecords(final String hostname) {
             final List<String> res = new ArrayList<String>();
             if (hostname == null) {
@@ -578,10 +534,12 @@ public class MailServer {
             this.localhostByName = localhostByName;
         }
 
+        @Override
         public String getHostName(final InetAddress addr) {
             return addr.getHostName();
         }
 
+        @Override
         public InetAddress getLocalHost() throws UnknownHostException {
             return InetAddress.getLocalHost();
         }

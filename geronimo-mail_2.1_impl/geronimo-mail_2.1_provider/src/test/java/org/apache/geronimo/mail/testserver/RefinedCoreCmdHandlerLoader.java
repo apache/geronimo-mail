@@ -16,16 +16,26 @@
  */
 package org.apache.geronimo.mail.testserver;
 
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.james.pop3server.core.CoreCmdHandlerLoader;
+import org.apache.james.protocols.lib.handler.HandlersPackage;
 
-public class RefinedCoreCmdHandlerLoader extends org.apache.james.pop3server.core.CoreCmdHandlerLoader {
+/**
+ * The stock POP3 handler set plus APOP support.
+ */
+public class RefinedCoreCmdHandlerLoader implements HandlersPackage {
+
+    private final List<String> handlers = new ArrayList<>(new CoreCmdHandlerLoader().getHandlers());
 
     public RefinedCoreCmdHandlerLoader() {
-        super();
-        getHandlers().add(ApopCmdHandler.class.getName());
-        
+        handlers.add(ApopCmdHandler.class.getName());
     }
-    
-    
+
+    @Override
+    public List<String> getHandlers() {
+        return handlers;
+    }
 
 }

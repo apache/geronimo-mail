@@ -103,8 +103,11 @@ public class IssuesTest extends AbstractProtocolTest {
             Properties props = new Properties();
             props.setProperty("mail.transport.protocol", "smtp");
             props.setProperty("mail.smtp.port", String.valueOf(smtpConf.getListenerPort()));
-            props.setProperty("mail.store.protocol", "imap");
-            props.setProperty("mail.imap.port", String.valueOf(imapConf.getListenerPort()));
+            // Retrieve via POP3: the raw MIME bytes round-trip unaltered, so the client-side
+            // filename decoding is what gets tested. James 3.9's IMAP BODYSTRUCTURE decodes
+            // encoded-word parameters on the server side and replaces non-ASCII with '?'.
+            props.setProperty("mail.store.protocol", "pop3");
+            props.setProperty("mail.pop3.port", String.valueOf(pop3Conf.getListenerPort()));
             //props.setProperty("mail.debug","true");
             Session session = Session.getInstance(props);
 
