@@ -21,27 +21,29 @@ package jakarta.mail;
 
 import java.util.*;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Rev$ $Date$
  */
-public class FlagsTest extends TestCase {
+public class FlagsTest {
     private List flagtypes;
     private Flags flags;
     /**
      * Constructor for FlagsTest.
      * @param arg0
      */
-    public FlagsTest(final String name) {
-        super(name);
-    }
+
     /*
      * @see TestCase#setUp()
      */
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    public void setUp() throws Exception {
         flags = new Flags();
         flagtypes = new LinkedList();
         flagtypes.add(Flags.Flag.ANSWERED);
@@ -52,17 +54,21 @@ public class FlagsTest extends TestCase {
         flagtypes.add(Flags.Flag.SEEN);
         Collections.shuffle(flagtypes);
     }
+
+    @Test
     public void testHashCode() {
         final int before = flags.hashCode();
         flags.add("Test");
         assertTrue(
-            "Before: " + before + ", now " + flags.hashCode(),
-            flags.hashCode() != before);
+            flags.hashCode() != before,
+            "Before: " + before + ", now " + flags.hashCode());
         assertTrue(flags.hashCode() != 0);
     }
+
     /*
      * Test for void add(Flag)
      */
+    @Test
     public void testAddAndRemoveFlag() {
         Iterator it = flagtypes.iterator();
         while (it.hasNext()) {
@@ -78,9 +84,11 @@ public class FlagsTest extends TestCase {
             assertFalse(flags.contains(flag));
         }
     }
+
     /*
      * Test for void add(String)
      */
+    @Test
     public void testAddString() {
         assertFalse(flags.contains("Frog"));
         flags.add("Frog");
@@ -88,9 +96,11 @@ public class FlagsTest extends TestCase {
         flags.remove("Frog");
         assertFalse(flags.contains("Frog"));
     }
+
     /*
      * Test for void add(Flags)
      */
+    @Test
     public void testAddFlags() {
         final Flags other = new Flags();
         other.add("Stuff");
@@ -108,9 +118,11 @@ public class FlagsTest extends TestCase {
         assertFalse(flags.contains(other));
         assertTrue(flags.contains("Thing"));
     }
+
     /*
      * Test for boolean equals(Object)
      */
+    @Test
     public void testEqualsObject() {
         final Flags other = new Flags();
         other.add("Stuff");
@@ -118,6 +130,8 @@ public class FlagsTest extends TestCase {
         flags.add(other);
         assertEquals(flags, other);
     }
+
+    @Test
     public void testGetSystemFlags() {
         flags.add("Stuff");
         flags.add("Another");
@@ -130,6 +144,8 @@ public class FlagsTest extends TestCase {
                 || (array[0] == Flags.Flag.RECENT
                     && array[1] == Flags.Flag.FLAGGED));
     }
+
+    @Test
     public void testGetUserFlags() {
         final String stuff = "Stuff";
         final String another = "Another";
@@ -143,6 +159,8 @@ public class FlagsTest extends TestCase {
             (array[0] == stuff && array[1] == another)
                 || (array[0] == another && array[1] == stuff));
     }
+
+    @Test
     public void testClone() throws CloneNotSupportedException {
         flags.add("Thing");
         flags.add(Flags.Flag.RECENT);
@@ -151,6 +169,7 @@ public class FlagsTest extends TestCase {
         assertEquals(other, flags);
     }
 
+    @Test
     public void testClearSystemFlags() {
         Flags f = new Flags();
         f.add(Flags.Flag.ANSWERED);
@@ -168,6 +187,7 @@ public class FlagsTest extends TestCase {
         assertEquals("TEST", f.getUserFlags()[0]);
     }
 
+    @Test
     public void testClearuserFlags() {
         Flags f = new Flags();
         f.add(Flags.Flag.ANSWERED);
@@ -190,6 +210,7 @@ public class FlagsTest extends TestCase {
         assertEquals(0, f.getUserFlags().length);
     }
 
+    @Test
     public void testRetainAllFlags() {
         Flags f = new Flags();
         f.add(Flags.Flag.ANSWERED);

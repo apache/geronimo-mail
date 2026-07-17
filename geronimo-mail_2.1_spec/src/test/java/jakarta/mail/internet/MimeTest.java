@@ -30,12 +30,15 @@ import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.Session;
 
-import junit.framework.TestCase;
-
 import org.apache.geronimo.mail.util.Base64;
 
-public class MimeTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
+public class MimeTest {
+
+    @Test
     public void testWriteRead() throws Exception {
         System.setProperty("mail.mime.decodefilename", "true");
 

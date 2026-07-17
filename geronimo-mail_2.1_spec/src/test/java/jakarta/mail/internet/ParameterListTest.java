@@ -19,15 +19,16 @@
 
 package jakarta.mail.internet;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class ParameterListTest extends TestCase {
-    public ParameterListTest(final String arg0) {
-        super(arg0);
-    }
+public class ParameterListTest {
+
+    @Test
     public void testParameters() throws ParseException {
         final ParameterList list =
             new ParameterList(";thing=value;thong=vulue;thung=git");
@@ -36,12 +37,14 @@ public class ParameterListTest extends TestCase {
         assertEquals("git", list.get("thung"));
     }
 
+    @Test
     public void testQuotedParameter() throws ParseException {
         final ParameterList list = new ParameterList(";foo=one;bar=\"two\"");
         assertEquals("one", list.get("foo"));
         assertEquals("two", list.get("bar"));
     }
-    
+
+    @Test
     public void testQuotedParameterSet() throws ParseException {
         final ParameterList list = new ParameterList();
         list.set("foo", "one");
@@ -49,12 +52,14 @@ public class ParameterListTest extends TestCase {
         assertEquals("one", list.get("foo"));
         assertEquals("\"two\"", list.get("bar"));
     }
-    
+
+    @Test
     public void testMultisegmentParameter() throws ParseException {
         final ParameterList list = new ParameterList(";foo*0=one;foo*1=\"two\"");
         assertEquals("onetwo", list.get("foo"));
     }
 
+    @Test
     public void testMultisegmentParameterSet() throws ParseException {
         final ParameterList list = new ParameterList();
         list.set("foo*0", "one");
@@ -62,7 +67,8 @@ public class ParameterListTest extends TestCase {
         list.combineSegments();
         assertEquals("one\"two\"", list.get("foo"));
     }
-    
+
+    @Test
     public void testMultisegmentParameterMoreSet() throws ParseException {
         final ParameterList list = new ParameterList();
         list.set("foo*0", "one");
@@ -78,7 +84,8 @@ public class ParameterListTest extends TestCase {
         assertEquals("fivesix", list.get("test"));
         assertEquals("seven", list.get("test2"));
     }
-    
+
+    @Test
     public void testMultisegmentParameterMore() throws ParseException {
         final ParameterList list = new ParameterList(";foo*0=one;foo*1=two;foo*2=three;bar=four;test2*0=seven;test*1=six;test*0=five");
         assertEquals("onetwothree", list.get("foo"));
@@ -86,7 +93,8 @@ public class ParameterListTest extends TestCase {
         assertEquals("fivesix", list.get("test"));
         assertEquals("seven", list.get("test2"));
     }
-    
+
+    @Test
     public void testMultisegmentParameterEncodedMore() throws ParseException {
         final String value = " '*% abc \u0081\u0082\r\n\t";
         final String encodedTest = "UTF-8''%20%27%2A%25%20abc%20%C2%81%C2%82%0D%0A%09";
@@ -96,7 +104,8 @@ public class ParameterListTest extends TestCase {
         assertEquals("fivesix", list.get("test"));
         assertEquals("seven", list.get("test2"));
     }
-    
+
+    @Test
     public void testMultisegmentParameterEncodedMoreFail() throws ParseException {
         //final String value = " '*% abc \u0081\u0082\r\n\t";
         final String encodedTest = "UTF-8''%20%27%2A%25%20abc%20%C2%81%C2%82%0D%0A%09";
@@ -106,7 +115,8 @@ public class ParameterListTest extends TestCase {
         assertEquals("fivesix", list.get("test"));
         assertEquals("seven", list.get("test2"));
     }
-    
+
+    @Test
     public void testMultisegmentParameterMoreMixedEncodedSet() throws ParseException {
         
         final String value = " '*% abc \u0081\u0082\r\n\t";
@@ -133,7 +143,8 @@ public class ParameterListTest extends TestCase {
         final ParameterList list = new ParameterList("");
         assertEquals(0, list.size());
     }
-    
+
+    @Test
     public void testEncodeDecode() throws Exception {
 
         //since JavaMail 1.5 encodeparameters/decodeparameters are enabled by default

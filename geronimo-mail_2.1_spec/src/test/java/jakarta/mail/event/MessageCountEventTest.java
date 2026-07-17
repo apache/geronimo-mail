@@ -19,18 +19,20 @@
 
 package jakarta.mail.event;
 
+import org.junit.jupiter.api.Test;
+
 import jakarta.mail.Folder;
 import jakarta.mail.TestData;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class MessageCountEventTest extends TestCase {
-    public MessageCountEventTest(final String name) {
-        super(name);
-    }
+public class MessageCountEventTest {
+
+    @Test
     public void testEvent() {
         doEventTests(MessageCountEvent.ADDED);
         doEventTests(MessageCountEvent.REMOVED);
@@ -48,7 +50,7 @@ public class MessageCountEventTest extends TestCase {
         assertEquals(type, event.getType());
         final MessageCountListenerTest listener = new MessageCountListenerTest();
         event.dispatch(listener);
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
     public static class MessageCountListenerTest
         implements MessageCountListener {

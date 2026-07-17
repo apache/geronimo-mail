@@ -19,15 +19,17 @@
 
 package jakarta.mail.event;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class MessageChangedEventTest extends TestCase {
-    public MessageChangedEventTest(final String name) {
-        super(name);
-    }
+public class MessageChangedEventTest {
+
+    @Test
     public void testEvent() {
         doEventTests(MessageChangedEvent.ENVELOPE_CHANGED);
         doEventTests(MessageChangedEvent.FLAGS_CHANGED);
@@ -38,7 +40,7 @@ public class MessageChangedEventTest extends TestCase {
         assertEquals(type, event.getMessageChangeType());
         final MessageChangedListenerTest listener = new MessageChangedListenerTest();
         event.dispatch(listener);
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
     public static class MessageChangedListenerTest
         implements MessageChangedListener {

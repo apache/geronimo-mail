@@ -19,17 +19,19 @@
 
 package jakarta.mail.internet;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @version $Rev$ $Date$
  */
-public class ContentDispositionTest extends TestCase {
+public class ContentDispositionTest {
 
-    public ContentDispositionTest(final String name) {
-        super(name);
-    }
 
+    @Test
     public void testContentDisposition() throws ParseException {
         ContentDisposition c;
         c = new ContentDisposition();

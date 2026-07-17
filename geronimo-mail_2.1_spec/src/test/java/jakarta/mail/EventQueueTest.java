@@ -22,26 +22,33 @@ package jakarta.mail;
 import java.util.Vector;
 
 import jakarta.mail.event.FolderEvent;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import jakarta.mail.event.FolderListener;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class EventQueueTest extends TestCase {
-    protected EventQueue queue; 
-    
-    @Override
+public class EventQueueTest {
+    protected EventQueue queue;
+
+    @BeforeEach
     public void setUp() throws Exception {
         queue = new EventQueue();
     }
-    
-    @Override
+
+    @AfterEach
     public void tearDown() throws Exception {
         queue.stop(); 
     }
-    
+
+    @Test
     public void testEvent() {
         doEventTests(FolderEvent.CREATED);
         doEventTests(FolderEvent.RENAMED);
@@ -67,7 +74,7 @@ public class EventQueueTest extends TestCase {
             Thread.sleep(1000); 
         } catch (final InterruptedException e ) {
         }
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
     
     public static class FolderListenerTest implements FolderListener {

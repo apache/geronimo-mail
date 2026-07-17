@@ -26,12 +26,15 @@ import java.io.OutputStream;
 
 import jakarta.mail.util.ByteArrayDataSource;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class MimeUtilityTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class MimeUtilityTest {
 
     private final byte[] encodeBytes = new byte[] { 32, 104, -61, -87, 33, 32, -61, -96, -61, -88, -61, -76, 117, 32, 33, 33, 33 };
 
+    @Test
     public void testEncodeDecode() throws Exception {
 
         final byte [] data = new byte[256];
@@ -59,6 +62,7 @@ public class MimeUtilityTest extends TestCase {
     }
 
 
+    @Test
     public void testFoldUnfold() throws Exception {
         doFoldTest(0, "This is a short string", "This is a short string");
         doFoldTest(0, "The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog.",
@@ -104,6 +108,7 @@ public class MimeUtilityTest extends TestCase {
     }
 
 
+    @Test
     public void testEncodeWord() throws Exception {
         assertEquals("abc", MimeUtility.encodeWord("abc"));
 
@@ -123,6 +128,7 @@ public class MimeUtilityTest extends TestCase {
     }
 
 
+    @Test
     public void testEncodeText() throws Exception {
         assertEquals("abc", MimeUtility.encodeWord("abc"));
 
@@ -151,6 +157,7 @@ public class MimeUtilityTest extends TestCase {
     }
 
 
+    @Test
     public void testGetEncoding() throws Exception {
         ByteArrayDataSource source = new ByteArrayDataSource(new byte[] { 'a', 'b', 'c'}, "text/plain");
 
@@ -179,6 +186,7 @@ public class MimeUtilityTest extends TestCase {
     }
 
 
+    @Test
     public void testQuote() throws Exception {
         assertEquals("abc", MimeUtility.quote("abc", "&*%"));
         assertEquals("\"abc&\"", MimeUtility.quote("abc&", "&*%"));

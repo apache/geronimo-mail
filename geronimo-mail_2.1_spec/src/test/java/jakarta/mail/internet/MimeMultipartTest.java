@@ -31,19 +31,26 @@ import java.io.OutputStream;
 import java.util.Properties;
 
 import jakarta.activation.*;
+import org.junit.jupiter.api.Test;
+
 import jakarta.mail.BodyPart;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class MimeMultipartTest extends TestCase {
+public class MimeMultipartTest {
     private CommandMap defaultMap;
 
+    @Test
     public void testWriteTo() throws MessagingException, IOException, Exception {
         writeToSetUp();
 
@@ -60,6 +67,7 @@ public class MimeMultipartTest extends TestCase {
         writeToTearDown();
     }
 
+    @Test
     public void testPreamble() throws MessagingException, IOException {
         final Properties props = new Properties();
         final Session session = Session.getDefaultInstance(props);
@@ -93,6 +101,7 @@ public class MimeMultipartTest extends TestCase {
         assertEquals("This is a preamble\r\n", ((MimeMultipart)newMessage.getContent()).getPreamble());
     }
 
+    @Test
     public void testMIMEWriting() throws IOException, MessagingException {
         final File basedir = new File(System.getProperty("basedir", "."));
         final File testInput = new File(basedir, "src/test/resources/wmtom.bin");
@@ -111,7 +120,8 @@ public class MimeMultipartTest extends TestCase {
         assertNotNull(object1);
         assertEquals(multiPart.getCount(), 2);
     }
-    
+
+    @Test
     public void testJavaMail15NewConstrucor() throws IOException, MessagingException {
         final File basedir = new File(System.getProperty("basedir", "."));
         final File testInput = new File(basedir, "src/test/resources/wmtom.bin");
@@ -128,7 +138,8 @@ public class MimeMultipartTest extends TestCase {
         assertEquals(multiPart.getCount(), 2);
         assertTrue(multiPart.getContentType().startsWith("multipart/mixed"));
     }
-    
+
+    @Test
     public void testJavaMail15NewConstrucor2() throws IOException, MessagingException {
         final File basedir = new File(System.getProperty("basedir", "."));
         final File testInput = new File(basedir, "src/test/resources/wmtom.bin");
@@ -145,7 +156,8 @@ public class MimeMultipartTest extends TestCase {
         assertEquals(multiPart.getCount(), 2);
         assertTrue(multiPart.getContentType().startsWith("multipart/alternative"));
     }
-    
+
+    @Test
     public void testJavaMail15CachedContent() throws IOException, MessagingException {
     	final File basedir = new File(System.getProperty("basedir", "."));
     	final InputStream source = new FileInputStream(new File(basedir, "src/test/resources/multipart_msg_normal.eml"));
@@ -163,7 +175,8 @@ public class MimeMultipartTest extends TestCase {
 		message.setDataHandler(new DataHandler("","text/plain"));
 		assertNull(message.cachedContent);
     }
-    
+
+    @Test
     public void testJavaMail15MultipartParsingNormal() throws IOException, MessagingException {
     	try {
 			setMultipartSystemPropsToDefault();
@@ -175,7 +188,8 @@ public class MimeMultipartTest extends TestCase {
 		}
 		
     }
-    
+
+    @Test
     public void testJavaMail15MultipartParsingEmpty() throws IOException, MessagingException {
     	
     	/*
@@ -212,7 +226,8 @@ public class MimeMultipartTest extends TestCase {
 			setMultipartSystemPropsToDefault();
 		}
     }
-    
+
+    @Test
     public void testJavaMail1MultipartParsingMissingBoundaryParameter() throws IOException, MessagingException {
     	try {
 	    	setMultipartSystemPropsToDefault();
@@ -223,7 +238,8 @@ public class MimeMultipartTest extends TestCase {
 			setMultipartSystemPropsToDefault();
 		}
     }
-    
+
+    @Test
     public void testJavaMail1MultipartParsingMissingEndBoundary() throws IOException, MessagingException {
     	try {
 	    	setMultipartSystemPropsToDefault();
@@ -235,7 +251,8 @@ public class MimeMultipartTest extends TestCase {
 			setMultipartSystemPropsToDefault();
 		}
     }
-    
+
+    @Test
     public void testJavaMail15MultipartParsingWrongBoundary() throws IOException, MessagingException {
     	try {
 	    	setMultipartSystemPropsToDefault();

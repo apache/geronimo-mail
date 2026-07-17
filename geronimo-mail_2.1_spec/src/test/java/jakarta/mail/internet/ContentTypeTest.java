@@ -22,15 +22,20 @@ package jakarta.mail.internet;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Rev$ $Date$
  */
-public class ContentTypeTest extends TestCase {
-    public ContentTypeTest(final String arg0) {
-        super(arg0);
-    }
+public class ContentTypeTest {
+
+    @Test
     public void testContentType() throws ParseException {
         final ContentType type = new ContentType();
         assertNull(type.getPrimaryType());
@@ -38,6 +43,7 @@ public class ContentTypeTest extends TestCase {
         assertNull(type.getParameter("charset"));
     }
 
+    @Test
     public void testContentTypeStringStringParameterList() throws ParseException {
         ContentType type;
         final ParameterList list = new ParameterList(";charset=us-ascii");
@@ -51,6 +57,7 @@ public class ContentTypeTest extends TestCase {
 
     }
 
+    @Test
     public void testContentTypeString() throws ParseException {
         ContentType type;
         type = new ContentType("text/plain");
@@ -67,16 +74,28 @@ public class ContentTypeTest extends TestCase {
         assertEquals("us-ascii", parameterList.get("charset"));
         assertEquals("us-ascii", type.getParameter("charset"));
     }
+
+    @Test
     public void testGetPrimaryType() throws ParseException {
     }
+
+    @Test
     public void testGetSubType() throws ParseException {
     }
+
+    @Test
     public void testGetBaseType() throws ParseException {
     }
+
+    @Test
     public void testGetParameter() throws ParseException {
     }
+
+    @Test
     public void testGetParameterList() throws ParseException {
     }
+
+    @Test
     public void testSetPrimaryType() throws ParseException {
         final ContentType type = new ContentType("text/plain");
         type.setPrimaryType("binary");
@@ -84,6 +103,8 @@ public class ContentTypeTest extends TestCase {
         assertEquals("plain", type.getSubType());
         assertEquals("binary/plain", type.getBaseType());
     }
+
+    @Test
     public void testSetSubType() throws ParseException {
         final ContentType type = new ContentType("text/plain");
         type.setSubType("html");
@@ -91,10 +112,16 @@ public class ContentTypeTest extends TestCase {
         assertEquals("html", type.getSubType());
         assertEquals("text/html", type.getBaseType());
     }
+
+    @Test
     public void testSetParameter() throws ParseException {
     }
+
+    @Test
     public void testSetParameterList() throws ParseException {
     }
+
+    @Test
     public void testToString() throws ParseException {
         final ContentType type = new ContentType("text/plain");
         assertEquals("text/plain", type.toString());
@@ -113,6 +140,8 @@ public class ContentTypeTest extends TestCase {
         assertTrue(parameters.contains("foo=bar"));
         assertTrue(parameters.contains("bar=\"me@apache.org\""));
     }
+
+    @Test
     public void testMatchContentType() throws ParseException {
         final ContentType type = new ContentType("text/plain");
 
@@ -144,6 +173,8 @@ public class ContentTypeTest extends TestCase {
         assertFalse(type.match(test));
         assertFalse(test.match(type));
     }
+
+    @Test
     public void testMatchString() throws ParseException {
         final ContentType type = new ContentType("text/plain");
         assertTrue(type.match("text/plain"));
@@ -158,7 +189,8 @@ public class ContentTypeTest extends TestCase {
         assertFalse(type.match(""));
         assertFalse(type.match("text/plain/yada"));
     }
-    
+
+    @Test
     public void testSOAP12ContentType() throws ParseException {
         final ContentType type = new ContentType("multipart/related; type=\"application/xop+xml\"; start=\"<rootpart@soapui.org>\"; start-info=\"application/soap+xml; action=\\\"urn:upload\\\"\"; boundary=\"----=_Part_10_5804917.1223557742343\"");
         assertEquals("multipart/related", type.getBaseType());

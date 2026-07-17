@@ -29,21 +29,31 @@ import java.util.Properties;
 
 import jakarta.activation.CommandMap;
 import jakarta.activation.MailcapCommandMap;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import jakarta.mail.Address;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 
 import jakarta.mail.*;
-import junit.framework.TestCase;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Rev$ $Date$
  */
-public class MimeMessageTest extends TestCase {
+public class MimeMessageTest {
     private CommandMap defaultMap;
     private Session session;
 
+    @Test
     public void testNoDuplicateTo() throws MessagingException, IOException {
         final InternetAddress[] addresses = new InternetAddress[]{
                 new InternetAddress("test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com"),
@@ -58,10 +68,10 @@ public class MimeMessageTest extends TestCase {
             msg.writeTo(out);
 
             final String textMessage = new String(out.toByteArray());
-            assertTrue(textMessage, textMessage.contains(
+            assertTrue(textMessage.contains(
                     "To: \r\n" +
                     "  test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com,\r\n" +
-                    "  test2@example.com, test3@example.com"));
+                    "  test2@example.com, test3@example.com"), textMessage);
 
         }
         {
@@ -73,6 +83,7 @@ public class MimeMessageTest extends TestCase {
         }
     }
 
+    @Test
     public void testWriteTo() throws MessagingException, IOException {
         final MimeMessage msg = new MimeMessage(session);
         msg.setSender(new InternetAddress("foo"));
@@ -108,6 +119,7 @@ public class MimeMessageTest extends TestCase {
     }
 
 
+    @Test
     public void testFrom() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
 
@@ -150,6 +162,7 @@ public class MimeMessageTest extends TestCase {
     }
 
 
+    @Test
     public void testSender() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
 
@@ -167,7 +180,8 @@ public class MimeMessageTest extends TestCase {
         msg.setSender(null);
         assertNull(msg.getSender());
     }
-    
+
+    @Test
     public void testJavaMail15GetSession() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
         assertTrue(session == msg.getSession());
@@ -175,7 +189,8 @@ public class MimeMessageTest extends TestCase {
         final MimeMessage msg2 = new MimeMessage((Session) null);
         assertTrue(null == msg2.getSession());
     }
-    
+
+    @Test
     public void testJava15From() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
         
@@ -197,6 +212,7 @@ public class MimeMessageTest extends TestCase {
         assertEquals(from[0], new InternetAddress("test@apache.org"));
     }
 
+    @Test
     public void testGetAllRecipients() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
 
@@ -252,6 +268,7 @@ public class MimeMessageTest extends TestCase {
         assertEquals(recipients[2], group);
     }
 
+    @Test
     public void testGetRecipients() throws MessagingException {
         doRecipientTest(Message.RecipientType.TO);
         doRecipientTest(Message.RecipientType.CC);
@@ -362,6 +379,7 @@ public class MimeMessageTest extends TestCase {
         assertEquals(recipients[1], user);
     }
 
+    @Test
     public void testReplyTo() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
 
@@ -386,7 +404,8 @@ public class MimeMessageTest extends TestCase {
         recipients = msg.getReplyTo();
         assertNull(recipients);
     }
-    
+
+    @Test
     public void testJavaMail15Reply() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
         final InternetAddress dev = new InternetAddress("geronimo-dev@apache.org");
@@ -399,7 +418,8 @@ public class MimeMessageTest extends TestCase {
         assertTrue(msg.isSet(Flags.Flag.ANSWERED));
         assertEquals(new InternetAddress("test@apache.org"), replyMsg.getRecipients(Message.RecipientType.TO)[0]);
     }
-    
+
+    @Test
     public void testJavaMail15Reply2() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
         final InternetAddress dev = new InternetAddress("geronimo-dev@apache.org");
@@ -414,6 +434,7 @@ public class MimeMessageTest extends TestCase {
     }
 
 
+    @Test
     public void testSetSubject() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
 
@@ -434,6 +455,7 @@ public class MimeMessageTest extends TestCase {
     }
 
 
+    @Test
     public void testSetDescription() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
 
@@ -454,6 +476,7 @@ public class MimeMessageTest extends TestCase {
     }
 
 
+    @Test
     public void testGetContentType() throws MessagingException {
         final MimeMessage msg = new MimeMessage(session);
         assertEquals(msg.getContentType(), "text/plain");
@@ -463,6 +486,7 @@ public class MimeMessageTest extends TestCase {
     }
 
 
+    @Test
     public void testSetText() throws MessagingException {
         MimeMessage msg = new MimeMessage(session);
 
@@ -486,6 +510,7 @@ public class MimeMessageTest extends TestCase {
         assertEquals(type.getParameter("charset"), "UTF-8");
     }
 
+    @Test
     public void testAddDateinUpdateHeaders() throws MessagingException, ParseException {
         final MimeMessage msg = new MimeMessage(session);
         msg.updateHeaders();
@@ -502,8 +527,8 @@ public class MimeMessageTest extends TestCase {
     }
 
 
-    @Override
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         defaultMap = CommandMap.getDefaultCommandMap();
         final MailcapCommandMap myMap = new MailcapCommandMap();
         myMap.addMailcap("text/plain;;    x-java-content-handler=" + MimeMultipartTest.DummyTextHandler.class.getName());
@@ -516,8 +541,8 @@ public class MimeMessageTest extends TestCase {
         session = Session.getInstance(props);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @AfterEach
+    public void tearDown() throws Exception {
         CommandMap.setDefaultCommandMap(defaultMap);
     }
 }

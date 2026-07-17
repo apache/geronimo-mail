@@ -18,7 +18,7 @@ package org.apache.geronimo.mail.issues;
 
 import java.io.File;
 import java.util.Properties;
-
+import org.junit.jupiter.api.Assertions;
 import jakarta.activation.DataHandler;
 import jakarta.activation.FileDataSource;
 import jakarta.mail.BodyPart;
@@ -32,22 +32,24 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
-import junit.framework.Assert;
+import org.junit.jupiter.api.Test;
 
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 
 public class GERONIMO6480Test extends AbstractProtocolTest {
+    @Test
     public void testGERONIMO6480_0() throws Exception {
         System.setProperty("mail.mime.setcontenttypefilename", "false");
         BodyPart attachmentPart = new MimeBodyPart();
         attachmentPart.setDataHandler(new DataHandler(new FileDataSource(getAbsoluteFilePathFromClassPath("pdf-test.pdf"))));
         attachmentPart.setFileName("test.pdf");
         String contentType = getSendedAttachmentContentType(attachmentPart);
-        Assert.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
+        Assertions.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
         // "text/plain; name=test.pdf" with Geronimo because setFileName force it to 'text/plain' when adding the 'name=' part instead of keeping it null
         System.clearProperty("mail.mime.setcontenttypefilename");
     }
 
+    @Test
     public void testGERONIMO6480_1() throws Exception {
         System.setProperty("mail.mime.setcontenttypefilename", "false");
         BodyPart attachmentPart = new MimeBodyPart();
@@ -56,20 +58,22 @@ public class GERONIMO6480Test extends AbstractProtocolTest {
         attachmentPart.setDataHandler(new DataHandler(new FileDataSource(getAbsoluteFilePathFromClassPath("pdf-test.pdf"))));
         attachmentPart.setFileName("test.pdf");
         String contentType = getSendedAttachmentContentType(attachmentPart);
-        Assert.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
+        Assertions.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
         // "text/plain; name=test.pdf" with Geronimo because setFileName force it to 'text/plain' when adding the 'name=' part instead of keeping it null
         System.clearProperty("mail.mime.setcontenttypefilename");
     }
 
+    @Test
     public void testGERONIMO6480_2() throws Exception {
         BodyPart attachmentPart = new MimeBodyPart();
         attachmentPart.setDataHandler(new DataHandler(new FileDataSource(getAbsoluteFilePathFromClassPath("pdf-test.pdf"))));
         attachmentPart.addHeader("Content-Type", "aplication/pdf");
         attachmentPart.setFileName("test.pdf");
         String contentType = getSendedAttachmentContentType(attachmentPart);
-        Assert.assertEquals("aplication/pdf; name=test.pdf".toLowerCase(), contentType.toLowerCase());
+        Assertions.assertEquals("aplication/pdf; name=test.pdf".toLowerCase(), contentType.toLowerCase());
     }
 
+    @Test
     public void testGERONIMO6480_3() throws Exception {
         System.setProperty("mail.mime.setcontenttypefilename", Boolean.FALSE.toString());
         try {
@@ -77,18 +81,19 @@ public class GERONIMO6480Test extends AbstractProtocolTest {
             attachmentPart.setDataHandler(new DataHandler(new FileDataSource(getAbsoluteFilePathFromClassPath("pdf-test.pdf"))));
             attachmentPart.setFileName("test.pdf");
             String contentType = getSendedAttachmentContentType(attachmentPart);
-            Assert.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
+            Assertions.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
         } finally {
             System.setProperty("mail.mime.setcontenttypefilename", Boolean.TRUE.toString());
         }
     }
 
+    @Test
     public void testGERONIMO6480_4() throws Exception {
         BodyPart attachmentPart = new MimeBodyPart();
         attachmentPart.setFileName("test.pdf");
         attachmentPart.setDataHandler(new DataHandler(new FileDataSource(getAbsoluteFilePathFromClassPath("pdf-test.pdf"))));
         String contentType = getSendedAttachmentContentType(attachmentPart);
-        Assert.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
+        Assertions.assertEquals("application/octet-stream; name=test.pdf".toLowerCase(), contentType.toLowerCase());
     }
 
     private File getAbsoluteFilePathFromClassPath(String filename) throws Exception {

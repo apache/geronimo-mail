@@ -19,18 +19,20 @@
 
 package jakarta.mail.event;
 
+import org.junit.jupiter.api.Test;
+
 import jakarta.mail.Store;
 import jakarta.mail.TestData;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class StoreEventTest extends TestCase {
-    public StoreEventTest(final String name) {
-        super(name);
-    }
+public class StoreEventTest {
+
+    @Test
     public void testEvent() {
         doEventTests(StoreEvent.ALERT);
         doEventTests(StoreEvent.NOTICE);
@@ -50,7 +52,7 @@ public class StoreEventTest extends TestCase {
         assertEquals(type, event.getMessageType());
         final StoreListenerTest listener = new StoreListenerTest();
         event.dispatch(listener);
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
     public static class StoreListenerTest implements StoreListener {
         private int state = 0;

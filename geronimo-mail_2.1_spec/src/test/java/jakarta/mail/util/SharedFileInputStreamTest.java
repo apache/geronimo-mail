@@ -22,20 +22,22 @@ package jakarta.mail.util;
 import java.io.File;
 import java.io.IOException;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class SharedFileInputStreamTest extends TestCase {
+public class SharedFileInputStreamTest {
 
     File basedir = new File(System.getProperty("basedir", "."));
     File testInput = new File(basedir, "src/test/resources/test.dat");
 
-    public SharedFileInputStreamTest(final String arg0) {
-        super(arg0);
-    }
 
+    @Test
     public void testInput() throws Exception {
         doTestInput(new SharedFileInputStream(testInput));
         doTestInput(new SharedFileInputStream(testInput.getPath()));
@@ -73,6 +75,7 @@ public class SharedFileInputStreamTest extends TestCase {
     }
 
 
+    @Test
     public void testNewStream() throws Exception {
         final SharedFileInputStream in = new SharedFileInputStream(testInput);
 
@@ -108,6 +111,7 @@ public class SharedFileInputStreamTest extends TestCase {
     }
 
 
+    @Test
     public void testMark() throws Exception {
         doMarkTest(new SharedFileInputStream(testInput, 10));
 

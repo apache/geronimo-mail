@@ -22,16 +22,19 @@ package jakarta.mail;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class URLNameTest extends TestCase {
-    public URLNameTest(final String name) {
-        super(name);
-    }
+public class URLNameTest {
 
+    @Test
     public void testURLNameString() {
         String s;
         URLName name;
@@ -179,6 +182,7 @@ public class URLNameTest extends TestCase {
         }
     }
 
+    @Test
     public void testURLNameAll() {
         URLName name;
         name = new URLName(null, null, -1, null, null, null);
@@ -317,6 +321,7 @@ public class URLNameTest extends TestCase {
         }
     }
 
+    @Test
     public void testURLNameURL() throws MalformedURLException {
         URL url;
         URLName name;
@@ -337,6 +342,7 @@ public class URLNameTest extends TestCase {
         }
     }
 
+    @Test
     public void testEquals() throws MalformedURLException {
         URLName name1 = new URLName("http://www.apache.org");
         assertEquals(name1, new URLName("http://www.apache.org"));
@@ -358,6 +364,7 @@ public class URLNameTest extends TestCase {
         assertEquals(new URLName("http://www.apache.org"), new URLName("http", "www.apache.org", -1, null, null, "doe"));
     }
 
+    @Test
     public void testHashCode() {
         final URLName name1 = new URLName("http://www.apache.org/file");
         final URLName name2 = new URLName("http://www.apache.org/file#ref");
@@ -365,12 +372,14 @@ public class URLNameTest extends TestCase {
         assertTrue(name1.hashCode() == name2.hashCode());
     }
 
+    @Test
     public void testNullProtocol() {
         final URLName name1 = new URLName(null, "www.apache.org", -1, null, null, null);
         final URLName name2 = new URLName(null, "www.apache.org", -1, null, null, null);
         assertTrue(!name2.equals(name1));
     }
 
+    @Test
     public void testOpaqueSchemes() {
         String s;
         URLName name;

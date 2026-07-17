@@ -19,15 +19,16 @@
 
 package jakarta.mail;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class HeaderTest extends TestCase {
-    public HeaderTest(final String name) {
-        super(name);
-    }
+public class HeaderTest {
+
+    @Test
     public void testHeader() {
         final Header header = new Header("One", "Two");
         assertEquals("One", header.getName());

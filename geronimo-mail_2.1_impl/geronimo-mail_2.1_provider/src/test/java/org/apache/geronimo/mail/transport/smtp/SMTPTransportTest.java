@@ -17,6 +17,7 @@
 package org.apache.geronimo.mail.transport.smtp;
 
 import java.util.Properties;
+import org.junit.jupiter.api.Test;
 
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
@@ -27,6 +28,7 @@ import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 
 public class SMTPTransportTest extends AbstractProtocolTest {
 
+    @Test
     public void testSSLEnable() throws Exception {
 
         

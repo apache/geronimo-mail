@@ -19,15 +19,17 @@
 
 package jakarta.mail.event;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class FolderEventTest extends TestCase {
-    public FolderEventTest(final String name) {
-        super(name);
-    }
+public class FolderEventTest {
+
+    @Test
     public void testEvent() {
         doEventTests(FolderEvent.CREATED);
         doEventTests(FolderEvent.RENAMED);
@@ -39,7 +41,7 @@ public class FolderEventTest extends TestCase {
         assertEquals(type, event.getType());
         final FolderListenerTest listener = new FolderListenerTest();
         event.dispatch(listener);
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
     public static class FolderListenerTest implements FolderListener {
         private int state = 0;

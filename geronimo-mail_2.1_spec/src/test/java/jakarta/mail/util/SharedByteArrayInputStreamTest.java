@@ -19,21 +19,21 @@
 
 package jakarta.mail.util;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class SharedByteArrayInputStreamTest extends TestCase {
+public class SharedByteArrayInputStreamTest {
     private final String testString = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private final byte[] testData = testString.getBytes();
 
 
 
-    public SharedByteArrayInputStreamTest(final String arg0) {
-        super(arg0);
-    }
 
+    @Test
     public void testInput() throws Exception {
         final SharedByteArrayInputStream in = new SharedByteArrayInputStream(testData);
 
@@ -62,6 +62,7 @@ public class SharedByteArrayInputStreamTest extends TestCase {
     }
 
 
+    @Test
     public void testNewStream() throws Exception {
         final SharedByteArrayInputStream in = new SharedByteArrayInputStream(testData);
 

@@ -19,12 +19,16 @@
 
 package jakarta.mail.internet;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class HeaderTokenizerTest extends TestCase {
+public class HeaderTokenizerTest {
+    @Test
     public void testTokenizer() throws ParseException {
 
         HeaderTokenizer ht = new HeaderTokenizer("To: \"Geronimo List\" <geronimo-dev@apache.org>, \n\r Geronimo User <geronimo-user@apache.org>");
@@ -66,6 +70,7 @@ public class HeaderTokenizerTest extends TestCase {
         doComment(false);
     }
 
+    @Test
     public void testErrors() throws ParseException {
         checkParseError("(Geronimo");
         checkParseError("((Geronimo)");
@@ -74,6 +79,7 @@ public class HeaderTokenizerTest extends TestCase {
     }
 
 
+    @Test
     public void testQuotedLiteral() throws ParseException {
         checkTokenParse("\"\"", HeaderTokenizer.Token.QUOTEDSTRING, "");
         checkTokenParse("\"\\\"\"", HeaderTokenizer.Token.QUOTEDSTRING, "\"");
@@ -83,6 +89,7 @@ public class HeaderTokenizerTest extends TestCase {
     }
 
 
+    @Test
     public void testComment() throws ParseException {
         checkTokenParse("()", HeaderTokenizer.Token.COMMENT, "");
         checkTokenParse("(())", HeaderTokenizer.Token.COMMENT, "()");
@@ -92,26 +99,30 @@ public class HeaderTokenizerTest extends TestCase {
         checkTokenParse("(Foo \r\n Bar)", HeaderTokenizer.Token.COMMENT, "Foo  Bar");
         checkTokenParse("(Foo \n Bar)", HeaderTokenizer.Token.COMMENT, "Foo \n Bar");
     }
-    
-    public void testJavaMail15NextMethod() throws ParseException{
+
+    @Test
+    public void testJavaMail15NextMethod() throws ParseException {
         HeaderTokenizer ht = new HeaderTokenizer("To: \"Geronimo List\\\" <geronimo-dev@apache.org>, \n\r Geronimo User <geronimo-user@apache.org>");
         validateToken(ht.next('>', false), HeaderTokenizer.Token.QUOTEDSTRING, "To: \"Geronimo List\" <geronimo-dev@apache.org");
     }
-    
-    public void testJavaMail15NextMethodEscapes() throws ParseException{
+
+    @Test
+    public void testJavaMail15NextMethodEscapes() throws ParseException {
         HeaderTokenizer ht = new HeaderTokenizer("To: \"Geronimo List\\\" <geronimo-dev@apache.org>, \n\r Geronimo User <geronimo-user@apache.org>");
         validateToken(ht.next('<', true), HeaderTokenizer.Token.QUOTEDSTRING, "To: \"Geronimo List\\\" ");
     }
-    
-    public void testJavaMail15NextMethodEscapes2() throws ParseException{
+
+    @Test
+    public void testJavaMail15NextMethodEscapes2() throws ParseException {
         HeaderTokenizer ht = new HeaderTokenizer("To: \"Geronimo List\" <geronimo-dev@apac\\he.org>, \n\r Geronimo User <geronimo-user@apache.org>");
         ht.next();
         ht.next();
         ht.next();
         validateToken(ht.next(',', false), HeaderTokenizer.Token.QUOTEDSTRING, "<geronimo-dev@apache.org>");
     }
-    
-    public void testJavaMail15NextMethodEscapes3() throws ParseException{
+
+    @Test
+    public void testJavaMail15NextMethodEscapes3() throws ParseException {
         HeaderTokenizer ht = new HeaderTokenizer("To: \"Geronimo List\" <geronimo-dev@apac\\he.org>, \n\r Geronimo User <geronimo-user@apache.org>");
         ht.next();
         ht.next();
@@ -193,6 +204,7 @@ public class HeaderTokenizerTest extends TestCase {
             new TestCase(';', "a=b c; d=e f", "b c"),
             new TestCase(';', "a=\"b \\c\"; d=e f", "b \\c") };
 
+    @Test
     public void testNext() throws Exception {
 
         final String value = "ggere, /tmp/mail.out, +mailbox, ~user/mailbox, ~/mailbox, /PN=x400.address/PRMD=ibmmail/ADMD=ibmx400/C=us/@mhs-mci.ebay, " +
@@ -215,6 +227,7 @@ public class HeaderTokenizerTest extends TestCase {
         }
     }
 
+    @Test
     public void testNext2() throws Exception {
 
         // Create HeaderTokenizer object
@@ -244,6 +257,7 @@ public class HeaderTokenizerTest extends TestCase {
         }
     }
 
+    @Test
     public void testNext3() throws Exception {
 
         // Create HeaderTokenizer object

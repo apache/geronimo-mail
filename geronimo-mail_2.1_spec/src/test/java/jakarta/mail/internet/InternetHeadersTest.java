@@ -23,14 +23,21 @@ import java.io.ByteArrayInputStream;
 
 import jakarta.mail.MessagingException;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @version $Rev$ $Date$
  */
-public class InternetHeadersTest extends TestCase {
+public class InternetHeadersTest {
     private InternetHeaders headers;
 
+    @Test
     public void testLoadSingleHeader() throws MessagingException {
         final String stream = "content-type: text/plain\r\n\r\n";
         headers.load(new ByteArrayInputStream(stream.getBytes()));
@@ -39,26 +46,30 @@ public class InternetHeadersTest extends TestCase {
         assertEquals("text/plain", header[0]);
     }
 
-    @Override
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         headers = new InternetHeaders();
     }
 
 
+    @Test
     public void testReturnPathHeaderIgnored() throws MessagingException {
         headers.addHeader("Return-Path", "first");
         headers.addHeader("Return-Path", "second");
     }
 
+    @Test
     public void testReceivedHeaderIgnored() throws MessagingException {
         headers.addHeader("Received", "first");
         headers.addHeader("Received", "second");
     }
 
+    @Test
     public void testOtherHeaderNotDuplicated() throws MessagingException {
         headers.addHeader("Other", "first");
     }
 
+    @Test
     public void testActuallyDuplicatedHeader() throws MessagingException {
         headers.addHeader("Other", "first");
         try {

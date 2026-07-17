@@ -25,21 +25,22 @@ import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.apache.geronimo.mail.store.pop3.POP3StoreTest;
 
-public abstract class AbstractProtocolTest extends TestCase {
+public abstract class AbstractProtocolTest {
 
     protected MailServer server = new MailServer();
     protected MailServer.Pop3TestConfiguration pop3Conf;
     protected MailServer.SmtpTestConfiguration smtpConf;
     protected MailServer.ImapTestConfiguration imapConf;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    public void setUp() throws Exception {
         pop3Conf = new MailServer.Pop3TestConfiguration();
         smtpConf = new MailServer.SmtpTestConfiguration();
         imapConf = new MailServer.ImapTestConfiguration();
@@ -52,33 +53,36 @@ public abstract class AbstractProtocolTest extends TestCase {
 
     }
 
+    @Test
     public void testImplUsageImap() throws Exception {
 
         //check that we load our mail impl
         final Properties props = new Properties();
         props.setProperty("mail.store.protocol", "imap");
         final Session jmsession = Session.getInstance(props);
-        Assert.assertEquals(org.apache.geronimo.mail.store.imap.IMAPStore.class, jmsession.getStore().getClass());
+        Assertions.assertEquals(org.apache.geronimo.mail.store.imap.IMAPStore.class, jmsession.getStore().getClass());
 
     }
 
+    @Test
     public void testImplUsagePop3() throws Exception {
 
         //check that we load our mail impl
         final Properties props = new Properties();
         props.setProperty("mail.store.protocol", "pop3");
         final Session jmsession = Session.getInstance(props);
-        Assert.assertEquals(org.apache.geronimo.mail.store.pop3.POP3Store.class, jmsession.getStore().getClass());
+        Assertions.assertEquals(org.apache.geronimo.mail.store.pop3.POP3Store.class, jmsession.getStore().getClass());
 
     }
 
+    @Test
     public void testImplUsageSmtp() throws Exception {
 
         //check that we load our mail impl
         final Properties props = new Properties();
         props.setProperty("mail.transport.protocol", "smtp");
         final Session jmsession = Session.getInstance(props);
-        Assert.assertEquals(org.apache.geronimo.mail.transport.smtp.SMTPTransport.class, jmsession.getTransport().getClass());
+        Assertions.assertEquals(org.apache.geronimo.mail.transport.smtp.SMTPTransport.class, jmsession.getTransport().getClass());
 
     }
 
@@ -107,8 +111,8 @@ public abstract class AbstractProtocolTest extends TestCase {
         Transport.send(message, new Address[] { new InternetAddress("serveruser@localhost") });
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @AfterEach
+    public void tearDown() throws Exception {
         server.stop();
     }
 

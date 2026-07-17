@@ -25,9 +25,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.apache.geronimo.genesis</groupId>
-        <artifactId>genesis-java8-flava</artifactId>
-        <version>2.4</version>
+        <groupId>org.apache</groupId>
+        <artifactId>apache</artifactId>
+        <version>39</version>
+        <relativePath><!--Resolve on repository--></relativePath>
     </parent>
 
     <groupId>org.apache.geronimo</groupId>
@@ -74,6 +75,18 @@
             <archive>https://mail-archives.apache.org/mod_mbox/geronimo-users/</archive>
         </mailingList>
     </mailingLists>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.6</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <modules>
         <module>geronimo-mail_2.1_spec</module>

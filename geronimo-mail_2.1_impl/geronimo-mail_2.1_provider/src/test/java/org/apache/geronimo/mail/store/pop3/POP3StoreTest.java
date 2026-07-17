@@ -19,6 +19,7 @@ package org.apache.geronimo.mail.store.pop3;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
+import org.junit.jupiter.api.Assertions;
 
 import jakarta.mail.Address;
 import jakarta.mail.FetchProfile;
@@ -35,16 +36,19 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
-import junit.framework.Assert;
+import org.junit.jupiter.api.Test;
 
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 import org.apache.geronimo.mail.testserver.MailServer.DummySocketFactory;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 public class POP3StoreTest extends AbstractProtocolTest {
 
-    
-    
-    
+
+    @Test
     public void testSendRetrieve() throws Exception {
         
         start();
@@ -69,7 +73,7 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         Message[] messages = new Message[2];
         messages[0] = f.getMessage(1);
         messages[1] = f.getMessage(2);
@@ -109,8 +113,9 @@ public class POP3StoreTest extends AbstractProtocolTest {
         
         assertEquals(input.getContentType().toLowerCase(), output.getContentType().toLowerCase());        
     }
-    
 
+
+    @Test
     public void testStartTLS() throws Exception {
 
         pop3Conf.enableSSL(true, false);
@@ -131,12 +136,13 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         f.close(false);
         store.close();
 
     }
 
+    @Test
     public void testAPOP() throws Exception {
 
         pop3Conf.enableSSL(true, false);
@@ -155,12 +161,13 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         f.close(false);
         store.close();
 
     }
 
+    @Test
     public void testFetch() throws Exception {
 
         
@@ -185,30 +192,30 @@ public class POP3StoreTest extends AbstractProtocolTest {
         
         Message[] msgs = f.getMessages();
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        Assert.assertEquals(2, msgs.length);
+        Assertions.assertEquals(2, msgs.length);
         
         f.fetch(msgs, fp);
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         
         for (int i = 0; i < msgs.length; i++) {
             Message message = msgs[i];
             message.writeTo(bout);
             String msg = bout.toString();
-            Assert.assertNotNull(msg);
+            Assertions.assertNotNull(msg);
             int num = message.getMessageNumber();
-            Assert.assertTrue(num > 0);
+            Assertions.assertTrue(num > 0);
             String uid = ((POP3Folder) f).getUID(message);
-            Assert.assertNotNull(uid);
-            Assert.assertTrue(!uid.isEmpty());
+            Assertions.assertNotNull(uid);
+            Assertions.assertTrue(!uid.isEmpty());
         }
         
         f.close(false);
         store.close();
 
     }
-    
-    
-    
+
+
+    @Test
     public void testDelete() throws Exception {
 
         
@@ -227,21 +234,21 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_WRITE); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         Message[] msgs =  f.getMessages();
         f.setFlags(msgs, new Flags(Flag.DELETED), true);
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         f.getMessage(1).getSubject(); //should fail
         //Assert.assertEquals(2, f.expunge());
         f.close(false);
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(0, f.getMessageCount());
+        Assertions.assertEquals(0, f.getMessageCount());
         store.close();
 
     }
-    
-    
-    
+
+
+    @Test
     public void testStartTLSFail() throws Exception {
 
         
@@ -267,6 +274,7 @@ public class POP3StoreTest extends AbstractProtocolTest {
         }
     }
 
+    @Test
     public void testSSLEnable() throws Exception {
 
         
@@ -287,12 +295,13 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         f.close(false);
         store.close();
 
     }
 
+    @Test
     public void testSSLPop3s() throws Exception {
 
         
@@ -312,12 +321,13 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         f.close(false);
         store.close();
 
     }
-    
+
+    @Test
     public void testSSLPop3sFactoryClass() throws Exception {
 
         
@@ -340,7 +350,7 @@ public class POP3StoreTest extends AbstractProtocolTest {
             store.connect("127.0.0.1", "serveruser", "serverpass");
             fail();
         } catch (MessagingException e) {
-            Assert.assertEquals("dummy socket factory", e.getCause().getCause().getMessage());
+            Assertions.assertEquals("dummy socket factory", e.getCause().getCause().getMessage());
             
             //Expected
         }
@@ -349,6 +359,7 @@ public class POP3StoreTest extends AbstractProtocolTest {
         
     }
 
+    @Test
     public void testSSLPop3sFactoryInstance() throws Exception {
 
         
@@ -371,13 +382,14 @@ public class POP3StoreTest extends AbstractProtocolTest {
             store.connect("127.0.0.1", "serveruser", "serverpass");
             fail();
         } catch (MessagingException e) {
-            Assert.assertEquals("dummy socket factory", e.getCause().getMessage());
+            Assertions.assertEquals("dummy socket factory", e.getCause().getMessage());
             
             //Expected
         }
 
     }
-    
+
+    @Test
     public void testSSLPop3sNotEnabled() throws Exception {
 
         
@@ -398,12 +410,13 @@ public class POP3StoreTest extends AbstractProtocolTest {
         store.connect("127.0.0.1", "serveruser", "serverpass");
         Folder f = store.getFolder("INBOX");
         f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-        Assert.assertEquals(2, f.getMessageCount());
+        Assertions.assertEquals(2, f.getMessageCount());
         f.close(false);
         store.close();
 
     }
-    
+
+    @Test
     public void testPop3GetMsgs() throws Exception {
 
         
@@ -426,18 +439,18 @@ public class POP3StoreTest extends AbstractProtocolTest {
         
         Message[] msgs =  f.getMessages();
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        Assert.assertEquals(2, msgs.length);
+        Assertions.assertEquals(2, msgs.length);
         
         for (int i = 0; i < msgs.length; i++) {
             Message message = msgs[i];
             message.writeTo(bout);
             String msg = bout.toString();
-            Assert.assertNotNull(msg);
+            Assertions.assertNotNull(msg);
             int num = message.getMessageNumber();
-            Assert.assertTrue(num > 0);
+            Assertions.assertTrue(num > 0);
             String uid = ((POP3Folder) f).getUID(message);
-            Assert.assertNotNull(uid);
-            Assert.assertTrue(!uid.isEmpty());
+            Assertions.assertNotNull(uid);
+            Assertions.assertTrue(!uid.isEmpty());
         }
         
         f.close(false);

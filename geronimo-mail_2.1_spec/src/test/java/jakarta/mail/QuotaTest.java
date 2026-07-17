@@ -19,13 +19,19 @@
 
 package jakarta.mail;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Rev$ $Date$
  */
-public class QuotaTest extends TestCase {
+public class QuotaTest {
 
+    @Test
     public void testQuota() throws MessagingException {
         final Quota quota = new Quota("Fred");
 

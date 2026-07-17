@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Properties;
-
+import org.junit.jupiter.api.Assertions;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.activation.FileDataSource;
@@ -35,13 +35,14 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
-import junit.framework.Assert;
+import org.junit.jupiter.api.Test;
 
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 import org.apache.geronimo.mail.testserver.MailServer;
 
 public class IssuesTest extends AbstractProtocolTest {
 
+    @Test
     public void testGERONIMO6519() throws Exception {
 
         PrintStream original = System.out;
@@ -65,28 +66,32 @@ public class IssuesTest extends AbstractProtocolTest {
             message.setText("test");
 
             Transport.send(message);
-            Assert.assertTrue(baos.toString().contains("EHLO some.full.qualified.name.com"));
+            Assertions.assertTrue(baos.toString().contains("EHLO some.full.qualified.name.com"));
 
         } finally {
             System.setOut(original);
         }
 
     }
-    
+
+    @Test
     public void testGERONIMO4594() throws Exception {
-        Assert.assertTrue(doGERONIMO4594(true, true));
+        Assertions.assertTrue(doGERONIMO4594(true, true));
     }
-    
+
+    @Test
     public void testGERONIMO4594Fail0() throws Exception {
-        Assert.assertFalse(doGERONIMO4594(false, true));
+        Assertions.assertFalse(doGERONIMO4594(false, true));
     }
-    
+
+    @Test
     public void testGERONIMO4594Fail1() throws Exception {
-        Assert.assertFalse(doGERONIMO4594(false, false));
+        Assertions.assertFalse(doGERONIMO4594(false, false));
     }
-    
+
+    @Test
     public void testGERONIMO4594Fail2() throws Exception {
-        Assert.assertFalse(doGERONIMO4594(true, false));
+        Assertions.assertFalse(doGERONIMO4594(true, false));
     }
         
     private boolean doGERONIMO4594(boolean decode, boolean encode) throws Exception {
@@ -120,7 +125,7 @@ public class IssuesTest extends AbstractProtocolTest {
             Multipart multipart = new MimeMultipart();
             messageBodyPart.setText("This is message body");
             File file = MailServer.getAbsoluteFilePathFromClassPath("pdf-test.pdf");
-            Assert.assertTrue(file.exists());
+            Assertions.assertTrue(file.exists());
             DataSource source = new FileDataSource(file.getAbsoluteFile());
             messageBodyPart.setDataHandler(new DataHandler(source));
             messageBodyPart.setFileName(specialFileName);
@@ -134,7 +139,7 @@ public class IssuesTest extends AbstractProtocolTest {
             store.connect("127.0.0.1", "serveruser", "serverpass");
             Folder f = store.getFolder("INBOX");
             f.open(Folder.READ_ONLY); //TODO STAT only when folder open???
-            Assert.assertEquals(1, f.getMessageCount());
+            Assertions.assertEquals(1, f.getMessageCount());
             Message[] messages = new Message[2];
             messages[0] = f.getMessage(1);
             boolean match = specialFileName.equals(((Multipart) messages[0].getContent()).getBodyPart(0).getFileName());

@@ -19,12 +19,15 @@
 
 package jakarta.mail.internet;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class NewsAddressTest extends TestCase {
+public class NewsAddressTest {
+    @Test
     public void testNewsAddress() throws AddressException {
         final NewsAddress na = new NewsAddress("geronimo-dev", "news.apache.org");
         assertEquals("geronimo-dev", na.getNewsgroup());

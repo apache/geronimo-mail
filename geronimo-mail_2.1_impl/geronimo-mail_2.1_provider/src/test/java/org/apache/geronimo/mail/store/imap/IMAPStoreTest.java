@@ -19,6 +19,7 @@ package org.apache.geronimo.mail.store.imap;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
+import org.junit.jupiter.api.Test;
 
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
@@ -29,9 +30,13 @@ import jakarta.mail.internet.MimeMultipart;
 
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class IMAPStoreTest extends AbstractProtocolTest {
-    
+
+    @Test
     public void testSimple() throws Exception {
        
         start();

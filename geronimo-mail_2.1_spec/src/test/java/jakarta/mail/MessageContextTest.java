@@ -19,12 +19,13 @@
 
 package jakarta.mail;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
 /**
  * @version $Rev$ $Date$
  */
-public class MessageContextTest extends TestCase {
+public class MessageContextTest {
+    @Test
     public void testNothing() {
     }
     /*

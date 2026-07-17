@@ -22,11 +22,15 @@ import java.io.BufferedReader;
 
 import jakarta.mail.internet.MimeMessage;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
 import org.apache.geronimo.mail.store.imap.IMAPStoreTest;
 
-public class IMAPBodyStructureTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+public class IMAPBodyStructureTest {
+
+    @Test
     public void testMultipart() throws Exception {
         InputStream in = IMAPStoreTest.class.getResourceAsStream("/imap/multipart.bodystructure");
         BufferedReader r = new BufferedReader(new InputStreamReader(in));

@@ -19,6 +19,8 @@
 
 package jakarta.mail.event;
 
+import org.junit.jupiter.api.Test;
+
 import jakarta.mail.Address;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
@@ -27,15 +29,15 @@ import jakarta.mail.Transport;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class TransportEventTest extends TestCase {
-    public TransportEventTest(final String name) {
-        super(name);
-    }
+public class TransportEventTest {
+
+    @Test
     public void testEvent() throws AddressException {
         doEventTests(TransportEvent.MESSAGE_DELIVERED);
         doEventTests(TransportEvent.MESSAGE_PARTIALLY_DELIVERED);
@@ -53,7 +55,7 @@ public class TransportEventTest extends TestCase {
         assertEquals(type, event.getType());
         final TransportListenerTest listener = new TransportListenerTest();
         event.dispatch(listener);
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
     public static class TransportListenerTest implements TransportListener {
         private int state = 0;

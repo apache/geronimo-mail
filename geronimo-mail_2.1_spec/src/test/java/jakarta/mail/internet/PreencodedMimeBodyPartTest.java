@@ -23,19 +23,23 @@ import java.io.ByteArrayOutputStream;
 
 import jakarta.mail.MessagingException;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class PreencodedMimeBodyPartTest extends TestCase {
+public class PreencodedMimeBodyPartTest {
 
-     public void testEncoding() throws Exception {
+    @Test
+    public void testEncoding() throws Exception {
          final PreencodedMimeBodyPart part = new PreencodedMimeBodyPart("base64");
          assertEquals("base64", part.getEncoding());
      }
 
-     public void testUpdateHeaders() throws Exception {
+    @Test
+    public void testUpdateHeaders() throws Exception {
          final TestBodyPart part = new TestBodyPart("base64");
 
          part.updateHeaders();
@@ -43,7 +47,8 @@ public class PreencodedMimeBodyPartTest extends TestCase {
          assertEquals("base64", part.getHeader("Content-Transfer-Encoding", null));
      }
 
-     public void testWriteTo() throws Exception {
+    @Test
+    public void testWriteTo() throws Exception {
          final PreencodedMimeBodyPart part = new PreencodedMimeBodyPart("binary");
 
          final byte[] content = new byte[] { 81, 82, 83, 84, 85, 86 };

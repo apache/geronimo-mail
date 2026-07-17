@@ -19,24 +19,25 @@
 
 package jakarta.mail;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Revision $ $Date$
  */
-public class MessagingExceptionTest extends TestCase {
+public class MessagingExceptionTest {
     private RuntimeException e;
     private MessagingException d;
     private MessagingException c;
     private MessagingException b;
     private MessagingException a;
-    public MessagingExceptionTest(final String name) {
-        super(name);
-    }
-    
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+
+    @BeforeEach
+    public void setUp() throws Exception {
         
         //Initialize cause with null, make sure the getCause will not be affected
         a = new MessagingException("A", null);
@@ -45,11 +46,13 @@ public class MessagingExceptionTest extends TestCase {
         d = new MessagingException("D");
         e = new RuntimeException("E");
     }
-    
+
+    @Test
     public void testMessagingExceptionString() {
         assertEquals("A", a.getMessage());
     }
-    
+
+    @Test
     public void testNextException() {
         assertTrue(a.setNextException(b));
         assertEquals(b, a.getNextException());
@@ -75,21 +78,24 @@ public class MessagingExceptionTest extends TestCase {
         final int ap = message.indexOf("A");
         final int bp = message.indexOf("B");
         final int cp = message.indexOf("C");
-        assertTrue("A does not contain 'A'", ap != -1);
-        assertTrue("B does not contain 'B'", bp != -1);
-        assertTrue("C does not contain 'C'", cp != -1);
+        assertTrue(ap != -1, "A does not contain 'A'");
+        assertTrue(bp != -1, "B does not contain 'B'");
+        assertTrue(cp != -1, "C does not contain 'C'");
     }
-    
+
+    @Test
     public void testNextExceptionWrong() {
         assertTrue(a.setNextException(e));
         assertFalse(a.setNextException(b));
     }
-    
+
+    @Test
     public void testNextExceptionWrong2() {
         assertTrue(a.setNextException(e));
         assertFalse(a.setNextException(b));
     }
-    
+
+    @Test
     public void testMessagingExceptionStringException() {
         final MessagingException x = new MessagingException("X", a);
         assertEquals("X (jakarta.mail.MessagingException: A)", x.getMessage());

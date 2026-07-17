@@ -23,15 +23,18 @@ import java.io.ByteArrayOutputStream;
 import jakarta.activation.DataContentHandler;
 import jakarta.activation.DataSource;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public abstract class AbstractHandler extends TestCase {
+public abstract class AbstractHandler {
     protected DataContentHandler dch;
     protected String mimeType;
 
+    @Test
     public void testGetContent() throws Exception {
         final byte[] bytes = "Hello World".getBytes();
         DataSource ds = new DataSource() {
@@ -55,6 +58,7 @@ public abstract class AbstractHandler extends TestCase {
         assertEquals("Hello World", o);
     }
 
+    @Test
     public void testWriteTo() throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         dch.writeTo("Hello World", mimeType, baos);

@@ -25,12 +25,15 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class MailDateFormatTest extends TestCase {
+public class MailDateFormatTest {
+    @Test
     public void testMailDateFormat() throws ParseException {
         final MailDateFormat mdf = new MailDateFormat();
         Date date = mdf.parse("Wed, 27 Aug 2003 13:43:38 +0100 (BST)");

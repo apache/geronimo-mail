@@ -25,14 +25,22 @@ import java.util.Properties;
 
 import jakarta.mail.Session;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @version $Rev$ $Date$
  */
-public class InternetAddressTest extends TestCase {
+public class InternetAddressTest {
     private InternetAddress address;
 
+    @Test
     public void testQuotedLiterals() throws Exception {
         parseHeaderTest("\"Foo\t\n\\\\\\\"\" <foo@apache.org>", true, "foo@apache.org", "Foo\t\n\\\"", "\"Foo\t\n\\\\\\\"\" <foo@apache.org>", false);
         parseHeaderTest("<\"@,:;<>.[]()\"@apache.org>", true, "\"@,:;<>.[]()\"@apache.org", null, "<\"@,:;<>.[]()\"@apache.org>", false);
@@ -41,6 +49,7 @@ public class InternetAddressTest extends TestCase {
         parseHeaderErrorTest("\"Foo\r\" <foo@apache.org>", true);
     }
 
+    @Test
     public void testDomainLiterals() throws Exception {
         parseHeaderTest("<foo@[apache].org>", true, "foo@[apache].org", null, "<foo@[apache].org>", false);
         parseHeaderTest("<foo@[@()<>.,:;\"\\\\].org>", true, "foo@[@()<>.,:;\"\\\\].org", null, "<foo@[@()<>.,:;\"\\\\].org>", false);
@@ -50,6 +59,7 @@ public class InternetAddressTest extends TestCase {
         parseHeaderErrorTest("<foo@[\r].org>", true);
     }
 
+    @Test
     public void testComments() throws Exception {
         parseHeaderTest("Foo Bar (Fred) <foo@apache.org>", true, "foo@apache.org", "Foo Bar (Fred)", "\"Foo Bar (Fred)\" <foo@apache.org>", false);
         parseHeaderTest("(Fred) foo@apache.org", true, "foo@apache.org", "Fred", "Fred <foo@apache.org>", false);
@@ -59,6 +69,7 @@ public class InternetAddressTest extends TestCase {
         parseHeaderErrorTest("(Fred\r) foo@apache.org", true);
     }
 
+    @Test
     public void testParseHeader() throws Exception {
         parseHeaderTest("<@apache.org,@apache.net:foo@apache.org>", false, "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         parseHeaderTest("<@apache.org:foo@apache.org>", false, "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -82,6 +93,7 @@ public class InternetAddressTest extends TestCase {
         parseHeaderTest("apache.org", false, "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testValidate() throws Exception {
         validateTest("@apache.org,@apache.net:foo@apache.org");
         validateTest("@apache.org:foo@apache.org");
@@ -96,6 +108,7 @@ public class InternetAddressTest extends TestCase {
         validateTest("foo@[apache].[org]");
     }
 
+    @Test
     public void testStrictParseHeader() throws Exception {
         parseHeaderTest("<@apache.org,@apache.net:foo@apache.org>", true, "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         parseHeaderTest("<@apache.org:foo@apache.org>", true, "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -119,6 +132,7 @@ public class InternetAddressTest extends TestCase {
         parseHeaderTest("apache.org", true, "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testParse() throws Exception {
         parseTest("<@apache.org,@apache.net:foo@apache.org>", false, "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         parseTest("<@apache.org:foo@apache.org>", false, "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -142,6 +156,7 @@ public class InternetAddressTest extends TestCase {
         parseTest("apache.org", false, "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testDefaultParse() throws Exception {
         parseDefaultTest("<@apache.org,@apache.net:foo@apache.org>", "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         parseDefaultTest("<@apache.org:foo@apache.org>", "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -165,6 +180,7 @@ public class InternetAddressTest extends TestCase {
         parseDefaultTest("apache.org", "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testStrictParse() throws Exception {
         parseTest("<@apache.org,@apache.net:foo@apache.org>", true, "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         parseTest("<@apache.org:foo@apache.org>", true, "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -188,6 +204,7 @@ public class InternetAddressTest extends TestCase {
         parseTest("apache.org", true, "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testConstructor() throws Exception {
         constructorTest("(Foo) (Bar) foo.bar@apache.org", false, "foo.bar@apache.org", "Foo", "Foo <foo.bar@apache.org>", false);
         constructorTest("<@apache.org,@apache.net:foo@apache.org>", false, "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
@@ -211,6 +228,7 @@ public class InternetAddressTest extends TestCase {
         constructorTest("apache.org", false, "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testDefaultConstructor() throws Exception {
         constructorDefaultTest("<@apache.org,@apache.net:foo@apache.org>", "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         constructorDefaultTest("<@apache.org:foo@apache.org>", "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -234,6 +252,7 @@ public class InternetAddressTest extends TestCase {
         constructorDefaultTest("apache.org", "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testStrictConstructor() throws Exception {
         constructorTest("<@apache.org,@apache.net:foo@apache.org>", true, "@apache.org,@apache.net:foo@apache.org", null, "<@apache.org,@apache.net:foo@apache.org>", false);
         constructorTest("<@apache.org:foo@apache.org>", true, "@apache.org:foo@apache.org", null, "<@apache.org:foo@apache.org>", false);
@@ -257,35 +276,37 @@ public class InternetAddressTest extends TestCase {
         constructorTest("apache.org", true, "apache.org", null, "apache.org", false);
     }
 
+    @Test
     public void testParseHeaderList() throws Exception {
 
         InternetAddress[] addresses = InternetAddress.parseHeader("foo@apache.org,bar@apache.org", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = InternetAddress.parseHeader("Foo <foo@apache.org>,,Bar <bar@apache.org>", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", "Foo", "Foo <foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", "Bar", "Bar <bar@apache.org>", false);
 
         addresses = InternetAddress.parseHeader("foo@apache.org, bar@apache.org", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = InternetAddress.parseHeader("Foo <foo@apache.org>, Bar <bar@apache.org>", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", "Foo", "Foo <foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", "Bar", "Bar <bar@apache.org>", false);
 
 
         addresses = InternetAddress.parseHeader("Foo <foo@apache.org>,(yada),Bar <bar@apache.org>", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", "Foo", "Foo <foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", "Bar", "Bar <bar@apache.org>", false);
     }
 
+    @Test
     public void testParseHeaderErrors() throws Exception {
         parseHeaderErrorTest("foo@apache.org bar@apache.org", true);
         parseHeaderErrorTest("Foo foo@apache.org", true);
@@ -296,6 +317,7 @@ public class InternetAddressTest extends TestCase {
         parseHeaderErrorTest("foo@[apache.org", true);
     }
 
+    @Test
     public void testValidateErrors() throws Exception {
         validateErrorTest("foo@apache.org bar@apache.org");
         validateErrorTest("Foo foo@apache.org");
@@ -306,6 +328,7 @@ public class InternetAddressTest extends TestCase {
         validateErrorTest("foo@[apache.org");
     }
 
+    @Test
     public void testGroup() throws Exception {
         parseHeaderTest("Foo:foo@apache.org;", true, "Foo:foo@apache.org;", null, "Foo:foo@apache.org;", true);
         parseHeaderTest("Foo:foo@apache.org,bar@apache.org;", true, "Foo:foo@apache.org,bar@apache.org;", null, "Foo:foo@apache.org,bar@apache.org;", true);
@@ -322,75 +345,77 @@ public class InternetAddressTest extends TestCase {
         parseHeaderErrorTest("Foo Bar:<foo@apache.org,bar@apache.org;", true);
     }
 
+    @Test
     public void testGetGroup() throws Exception {
         InternetAddress[] addresses = getGroup("Foo:foo@apache.org;", true);
-        assertTrue("Expecting 1 address", addresses.length == 1);
+        assertTrue(addresses.length == 1, "Expecting 1 address");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
 
         addresses = getGroup("Foo:foo@apache.org,bar@apache.org;", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:<foo@apache.org>,bar@apache.org;", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:<foo@apache.org>,,bar@apache.org;", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:Foo <foo@apache.org>,bar@apache.org;", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", "Foo", "Foo <foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:Foo <@apache.org:foo@apache.org>,bar@apache.org;", true);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "@apache.org:foo@apache.org", "Foo", "Foo <@apache.org:foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
 
         addresses = getGroup("Foo:;", true);
-        assertTrue("Expecting 0 addresses", addresses.length == 0);
+        assertTrue(addresses.length == 0, "Expecting 0 addresses");
 
         addresses = getGroup("Foo:foo@apache.org;", false);
-        assertTrue("Expecting 1 address", addresses.length == 1);
+        assertTrue(addresses.length == 1, "Expecting 1 address");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
 
         addresses = getGroup("Foo:foo@apache.org,bar@apache.org;", false);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:<foo@apache.org>,bar@apache.org;", false);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:<foo@apache.org>,,bar@apache.org;", false);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", null, "foo@apache.org", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:Foo <foo@apache.org>,bar@apache.org;", false);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "foo@apache.org", "Foo", "Foo <foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
         addresses = getGroup("Foo:Foo <@apache.org:foo@apache.org>,bar@apache.org;", false);
-        assertTrue("Expecting 2 addresses", addresses.length == 2);
+        assertTrue(addresses.length == 2, "Expecting 2 addresses");
         validateAddress(addresses[0], "@apache.org:foo@apache.org", "Foo", "Foo <@apache.org:foo@apache.org>", false);
         validateAddress(addresses[1], "bar@apache.org", null, "bar@apache.org", false);
 
 
         addresses = getGroup("Foo:;", false);
-        assertTrue("Expecting 0 addresses", addresses.length == 0);
+        assertTrue(addresses.length == 0, "Expecting 0 addresses");
     }
 
 
+    @Test
     public void testLocalAddress() throws Exception {
         System.getProperties().remove("user.name");
 
@@ -442,6 +467,7 @@ public class InternetAddressTest extends TestCase {
         assertEquals(InternetAddress.getLocalAddress(session), new InternetAddress("tester@incubator.apache.org"));
     }
 
+    @Test
     public void testToStringStaticHelper() throws AddressException {
         final InternetAddress[] addresses = new InternetAddress[]{
                 new InternetAddress("test1ofaveryveryverylongemailaddressover71charwhichseemscrazyatfirstglance@example.com"),
@@ -472,8 +498,8 @@ public class InternetAddressTest extends TestCase {
     }
 
 
-    @Override
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         address = new InternetAddress();
     }
 
@@ -563,14 +589,14 @@ public class InternetAddressTest extends TestCase {
 
     private void validateAddress(final InternetAddress a, final String address, final String personal, final String toString, final boolean group)
     {
-        assertEquals("Invalid address:", a.getAddress(), address);
+        assertEquals(a.getAddress(), address, "Invalid address:");
         if (personal == null) {
-            assertNull("Personal must be null", a.getPersonal());
+            assertNull(a.getPersonal(), "Personal must be null");
         }
         else {
-            assertEquals("Invalid Personal:", a.getPersonal(), personal);
+            assertEquals(a.getPersonal(), personal, "Invalid Personal:");
         }
-        assertEquals("Invalid string value:", a.toString(), toString);
-        assertTrue("Incorrect group value:", group == a.isGroup());
+        assertEquals(a.toString(), toString, "Invalid string value:");
+        assertTrue(group == a.isGroup(), "Incorrect group value:");
     }
 }

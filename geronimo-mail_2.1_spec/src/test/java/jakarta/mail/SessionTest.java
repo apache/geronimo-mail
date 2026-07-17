@@ -21,12 +21,15 @@ package jakarta.mail;
 
 import java.util.Properties;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Rev$ $Date$
  */
-public class SessionTest extends TestCase {
+public class SessionTest {
+    @Test
     public void testAddProvider() throws MessagingException {
         final Properties props = System.getProperties();
          // Get a Session object

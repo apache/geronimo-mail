@@ -24,29 +24,35 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
+import org.junit.jupiter.api.Assertions;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
 import org.apache.geronimo.mail.util.Base64;
 import org.apache.geronimo.mail.testserver.MailServer;
 
-public class AuthenticationTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+public class AuthenticationTest {
+
+    @Test
     public void testImplUsage() throws Exception {
 
         //check that we load our mail impl
         Properties props = new Properties();
         props.setProperty("mail.store.protocol", "imap");
         Session jmsession = Session.getInstance(props);
-        Assert.assertEquals(IMAPStore.class, jmsession.getStore().getClass());
+        Assertions.assertEquals(IMAPStore.class, jmsession.getStore().getClass());
         
     }
-    
+
+    @Test
     public void testAuthenticatePlain() throws Exception {
 
         final int listenerPort = MailServer.acquirePort();
@@ -67,6 +73,7 @@ public class AuthenticationTest extends TestCase {
         assertNull(fs.exception);
     }
 
+    @Test
     public void testAuthenticatePlainFail() throws Exception {
 
         final int listenerPort = MailServer.acquirePort();
@@ -90,6 +97,7 @@ public class AuthenticationTest extends TestCase {
         }
     }
 
+    @Test
     public void testAuthenticatePlainAuthzid() throws Exception {
 
         final int listenerPort = MailServer.acquirePort();
@@ -112,6 +120,7 @@ public class AuthenticationTest extends TestCase {
     }
 
 
+    @Test
     public void testAuthenticateOAuth2() throws Exception {
         final int listenerPort = MailServer.acquirePort();
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("", "user", "token");
@@ -139,6 +148,7 @@ public class AuthenticationTest extends TestCase {
 
     }
 
+    @Test
     public void testAuthenticateOAuth2Fail() throws Exception {
         final int listenerPort = MailServer.acquirePort();
         FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("", "user", "token");

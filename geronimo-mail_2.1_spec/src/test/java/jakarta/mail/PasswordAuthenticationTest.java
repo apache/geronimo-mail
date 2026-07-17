@@ -19,15 +19,16 @@
 
 package jakarta.mail;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version $Rev$ $Date$
  */
-public class PasswordAuthenticationTest extends TestCase {
-    public PasswordAuthenticationTest(final String name) {
-        super(name);
-    }
+public class PasswordAuthenticationTest {
+
+    @Test
     public void testPA() {
         final String user = String.valueOf(System.currentTimeMillis());
         final String password = "JobbyJobbyJobby" + user;
@@ -35,6 +36,8 @@ public class PasswordAuthenticationTest extends TestCase {
         assertEquals(user, pa.getUserName());
         assertEquals(password, pa.getPassword());
     }
+
+    @Test
     public void testPasswordAuthentication() {
         final PasswordAuthentication pa = new PasswordAuthentication("Alex", "xelA");
         assertEquals("Alex", pa.getUserName());

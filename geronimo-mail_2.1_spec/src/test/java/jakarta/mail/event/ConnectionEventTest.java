@@ -19,12 +19,15 @@
 
 package jakarta.mail.event;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class ConnectionEventTest extends TestCase {
+public class ConnectionEventTest {
     public static class ConnectionListenerTest implements ConnectionListener {
         private int state = 0;
         public void closed(final ConnectionEvent event) {
@@ -49,17 +52,16 @@ public class ConnectionEventTest extends TestCase {
             state = ConnectionEvent.OPENED;
         }
     }
-    public ConnectionEventTest(final String name) {
-        super(name);
-    }
     private void doEventTests(final int type) {
         final ConnectionEvent event = new ConnectionEvent(this, type);
         assertEquals(this, event.getSource());
         assertEquals(type, event.getType());
         final ConnectionListenerTest listener = new ConnectionListenerTest();
         event.dispatch(listener);
-        assertEquals("Unexpcted method dispatched", type, listener.getState());
+        assertEquals(type, listener.getState(), "Unexpcted method dispatched");
     }
+
+    @Test
     public void testEvent() {
         doEventTests(ConnectionEvent.CLOSED);
         doEventTests(ConnectionEvent.OPENED);

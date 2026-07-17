@@ -21,9 +21,15 @@ package jakarta.mail.internet;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.Part;
-import junit.framework.TestCase;
 
 import jakarta.activation.DataHandler;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,11 +40,12 @@ import java.io.UnsupportedEncodingException;
 /**
  * @version $Rev$ $Date$
  */
-public class MimeBodyPartTest extends TestCase {
+public class MimeBodyPartTest {
 
     File basedir = new File(System.getProperty("basedir", "."));
     File testInput = new File(basedir, "src/test/resources/test.dat");
 
+    @Test
     public void testGetSize() throws MessagingException {
         MimeBodyPart part = new MimeBodyPart();
         assertEquals(part.getSize(), -1);
@@ -47,6 +54,7 @@ public class MimeBodyPartTest extends TestCase {
         assertEquals(part.getSize(), 3);
     }
 
+    @Test
     public void testGetLineCount() throws MessagingException {
         MimeBodyPart part = new MimeBodyPart();
         assertEquals(part.getLineCount(), -1);
@@ -56,6 +64,7 @@ public class MimeBodyPartTest extends TestCase {
     }
 
 
+    @Test
     public void testGetContentType() throws MessagingException {
         MimeBodyPart part = new MimeBodyPart();
         assertEquals(part.getContentType(), "text/plain");
@@ -69,6 +78,7 @@ public class MimeBodyPartTest extends TestCase {
     }
 
 
+    @Test
     public void testIsMimeType() throws MessagingException {
         final MimeBodyPart part = new MimeBodyPart();
         assertTrue(part.isMimeType("text/plain"));
@@ -80,6 +90,7 @@ public class MimeBodyPartTest extends TestCase {
     }
 
 
+    @Test
     public void testGetDisposition() throws MessagingException {
         final MimeBodyPart part = new MimeBodyPart();
         assertNull(part.getDisposition());
@@ -87,7 +98,8 @@ public class MimeBodyPartTest extends TestCase {
         part.setDisposition("inline");
         assertEquals(part.getDisposition(), "inline");
     }
-    
+
+    @Test
     public void testJavaMail15AttachmentDisposition() throws MessagingException, IOException {
         final MimeBodyPart part = new MimeBodyPart();
         assertNull(part.getDisposition());
@@ -95,7 +107,8 @@ public class MimeBodyPartTest extends TestCase {
         part.attachFile(testInput);
         assertEquals(Part.ATTACHMENT, part.getDisposition());
     }
-    
+
+    @Test
     public void testJavaMail15EncodingAware() throws MessagingException, IOException {
     	final File testInput = new File(basedir, "src/test/resources/test.dat");
     	final MimeBodyPart part = new MimeBodyPart();
@@ -112,6 +125,7 @@ public class MimeBodyPartTest extends TestCase {
     }
 
 
+    @Test
     public void testSetDescription() throws MessagingException, UnsupportedEncodingException {
         final MimeBodyPart part = new MimeBodyPart();
 
@@ -132,6 +146,7 @@ public class MimeBodyPartTest extends TestCase {
         assertNull(part.getDescription());
     }
 
+    @Test
     public void testSetFileName() throws Exception {
         final MimeBodyPart part = new MimeBodyPart();
         part.setFileName("test.dat");
@@ -155,6 +170,7 @@ public class MimeBodyPartTest extends TestCase {
     }
 
 
+    @Test
     public void testAttachments() throws Exception {
         MimeBodyPart part = new MimeBodyPart();
 
@@ -226,6 +242,7 @@ public class MimeBodyPartTest extends TestCase {
         compareFileData(testData, tempData);
     }
 
+    @Test
     public void testSetTextSubtype() throws Exception {
         final MimeBodyPart part = new MimeBodyPart();
         part.setText("<html>", "utf-8", "html");

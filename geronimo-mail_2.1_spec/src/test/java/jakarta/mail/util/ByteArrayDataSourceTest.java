@@ -23,16 +23,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @version $Rev$ $Date$
  */
-public class ByteArrayDataSourceTest extends TestCase {
-    public ByteArrayDataSourceTest(final String arg0) {
-        super(arg0);
-    }
+public class ByteArrayDataSourceTest {
 
+    @Test
     public void testByteArray() throws Exception {
         doDataSourceTest(new ByteArrayDataSource("0123456789", "text/plain"), "text/plain");
         doDataSourceTest(new ByteArrayDataSource("0123456789".getBytes(), "text/xml"), "text/xml");
