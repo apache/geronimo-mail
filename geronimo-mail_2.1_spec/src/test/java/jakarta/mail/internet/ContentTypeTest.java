@@ -191,6 +191,18 @@ public class ContentTypeTest {
     }
 
     @Test
+    public void testMatchNull() throws ParseException, jakarta.mail.MessagingException {
+        final ContentType type = new ContentType("text/plain");
+        // a null argument is simply not a match, never an NPE
+        assertFalse(type.match((String) null));
+        assertFalse(type.match((ContentType) null));
+
+        // and the same must hold at the part level
+        final MimeBodyPart part = new MimeBodyPart();
+        assertFalse(part.isMimeType(null));
+    }
+
+    @Test
     public void testSOAP12ContentType() throws ParseException {
         final ContentType type = new ContentType("multipart/related; type=\"application/xop+xml\"; start=\"<rootpart@soapui.org>\"; start-info=\"application/soap+xml; action=\\\"urn:upload\\\"\"; boundary=\"----=_Part_10_5804917.1223557742343\"");
         assertEquals("multipart/related", type.getBaseType());

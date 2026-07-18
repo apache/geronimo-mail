@@ -86,12 +86,18 @@ public class IssuesTest extends AbstractProtocolTest {
 
     @Test
     public void testGERONIMO4594Fail1() throws Exception {
-        Assertions.assertFalse(doGERONIMO4594(false, false));
+        // with mail.mime.encodefilename=false the filename is now written as an
+        // RFC 2231 encoded parameter (filename*=charset''...), which decodes
+        // transparently on read, so the round trip succeeds even without the
+        // encode/decodefilename convenience properties.
+        Assertions.assertTrue(doGERONIMO4594(false, false));
     }
 
     @Test
     public void testGERONIMO4594Fail2() throws Exception {
-        Assertions.assertFalse(doGERONIMO4594(true, false));
+        // as above: RFC 2231 parameter encoding makes the filename round-trip
+        // without the RFC 2047 convenience properties.
+        Assertions.assertTrue(doGERONIMO4594(true, false));
     }
         
     private boolean doGERONIMO4594(boolean decode, boolean encode) throws Exception {

@@ -128,8 +128,12 @@ public class RFC2231Encoder implements Encoder
             final byte v = data[i++];
             // a percent is a hex character marker, need to decode a hex value.
             if (v == '%') {
-                final byte b1 = decodingTable[data[i++]];
-                final byte b2 = decodingTable[data[i++]];
+                // a percent marker must be followed by two valid hex digits.
+                if (i + 1 >= end) {
+                    throw new IOException("Truncated RFC2231 hex escape");
+                }
+                final int b1 = hexDigitValue((char)(data[i++] & 0xff));
+                final int b2 = hexDigitValue((char)(data[i++] & 0xff));
                 out.write((b1 << 4) | b2);
             }
             else {
@@ -141,6 +145,23 @@ public class RFC2231Encoder implements Encoder
         }
 
         return outLen;
+    }
+
+    /**
+     * Convert a single hex digit character into its numeric value,
+     * rejecting anything that isn't a valid hex digit.
+     *
+     * @param ch     The candidate digit character.
+     *
+     * @return The numeric value of the digit (0-15).
+     * @exception IOException if the character is not a hex digit.
+     */
+    private static int hexDigitValue(final char ch) throws IOException {
+        final int value = Character.digit(ch, 16);
+        if (value < 0) {
+            throw new IOException("Invalid hex digit '" + ch + "' in RFC2231 encoded value");
+        }
+        return value;
     }
 
     /**
@@ -158,8 +179,12 @@ public class RFC2231Encoder implements Encoder
         {
             final char v = data.charAt(i++);
             if (v == '%') {
-                final byte b1 = decodingTable[data.charAt(i++)];
-                final byte b2 = decodingTable[data.charAt(i++)];
+                // a percent marker must be followed by two valid hex digits.
+                if (i + 1 >= end) {
+                    throw new IOException("Truncated RFC2231 hex escape");
+                }
+                final int b1 = hexDigitValue(data.charAt(i++));
+                final int b2 = hexDigitValue(data.charAt(i++));
 
                 out.write((b1 << 4) | b2);
             }

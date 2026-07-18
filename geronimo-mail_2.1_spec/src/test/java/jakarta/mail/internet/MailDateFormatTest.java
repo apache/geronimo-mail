@@ -96,4 +96,15 @@ public class MailDateFormatTest {
         assertEquals(43, cal.get(Calendar.MINUTE));
         assertEquals(00, cal.get(Calendar.SECOND));
     }
+
+    @Test
+    public void testParseClearsMilliseconds() throws ParseException {
+        final MailDateFormat mdf = new MailDateFormat();
+        // a parsed date has no millisecond component, so a format/parse round trip
+        // of a whole-second timestamp must reproduce it exactly
+        final Date original = new Date(1472598000000L);
+        final Date roundTrip = mdf.parse(mdf.format(original));
+        assertEquals(original, roundTrip);
+        assertEquals(0, roundTrip.getTime() % 1000);
+    }
 }

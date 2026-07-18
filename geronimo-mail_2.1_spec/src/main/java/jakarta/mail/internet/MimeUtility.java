@@ -27,7 +27,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -432,12 +434,12 @@ public class MimeUtility {
 
             final byte[] encodedData = encodedText.getBytes("US-ASCII");
 
-            // Base64 encoded?
-            if (encoding.equals("B")) {
+            // Base64 encoded?  RFC 2047 says the encoding token is case-insensitive.
+            if (encoding.equalsIgnoreCase("B")) {
                 Base64.decode(encodedData, out);
             }
             // maybe quoted printable.
-            else if (encoding.equals("Q")) {
+            else if (encoding.equalsIgnoreCase("Q")) {
                 final QuotedPrintableEncoder dataEncoder = new QuotedPrintableEncoder();
                 dataEncoder.decodeWord(encodedData, out);
             }
@@ -448,7 +450,11 @@ public class MimeUtility {
             final byte[] decodedData = out.toByteArray();
             return new String(decodedData, javaCharset(charset));
         } catch (final IOException e) {
-            throw new UnsupportedEncodingException("Invalid RFC 2047 encoding");
+            // don't swallow the real failure; keep it attached for diagnosis.
+            final UnsupportedEncodingException failure =
+                new UnsupportedEncodingException("Invalid RFC 2047 encoding: " + e.getMessage());
+            failure.initCause(e);
+            throw failure;
         }
 
     }
@@ -1098,7 +1104,7 @@ public class MimeUtility {
         // and line break characters.
         for (end = s.length() - 1; end >= 0; end--) {
             final int ch = s.charAt(end);
-            if (ch != ' ' && ch != '\t' ) {
+            if (ch != ' ' && ch != '\t' && ch != '\r' && ch != '\n') {
                 break;
             }
         }
@@ -1108,88 +1114,113 @@ public class MimeUtility {
             s = s.substring(0, end + 1);
         }
 
-        // does the string as it exists now not require folding?  We can just had that back right off.
+        // does the string as it exists now not require folding?  Just run the line break
+        // cleanup pass and return.
         if (s.length() + used <= FOLD_THRESHOLD) {
-            return s;
+            return fixupLineBreaks(s);
         }
 
         // get a buffer for the length of the string, plus room for a few line breaks.
-        // these are soft line breaks, so we generally need more that just the line breaks (an escape +
-        // CR + LF + leading space on next line);
-        final StringBuffer newString = new StringBuffer(s.length() + 8);
-
+        final StringBuilder newString = new StringBuilder(s.length() + 8);
 
         // now keep chopping this down until we've accomplished what we need.
         while (used + s.length() > FOLD_THRESHOLD) {
             int breakPoint = -1;
-            char breakChar = 0;
+            char previousChar = 0;
 
-            // now scan for the next place where we can break.
+            // scan for the best whitespace position to fold at.  Only the first
+            // character of a whitespace run is a candidate.  Once we're past the
+            // line limit we stop at the first candidate we've seen.
             for (int i = 0; i < s.length(); i++) {
-                // have we passed the fold limit?
-                if (used + i > FOLD_THRESHOLD) {
-                    // if we've already seen a blank, then stop now.  Otherwise
-                    // we keep going until we hit a fold point.
-                    if (breakPoint != -1) {
-                        break;
-                    }
+                if (breakPoint != -1 && used + i > FOLD_THRESHOLD) {
+                    break;
                 }
-                char ch = s.charAt(i);
-
-                // a white space character?
-                if (ch == ' ' || ch == '\t') {
-                    // this might be a run of white space, so skip over those now.
+                final char ch = s.charAt(i);
+                if ((ch == ' ' || ch == '\t') && previousChar != ' ' && previousChar != '\t') {
                     breakPoint = i;
-                    // we need to maintain the same character type after the inserted linebreak.
-                    breakChar = ch;
-                    i++;
-                    while (i < s.length()) {
-                        ch = s.charAt(i);
-                        if (ch != ' ' && ch != '\t') {
-                            break;
-                        }
-                        i++;
-                    }
                 }
-                // found an embedded new line.  Escape this so that the unfolding process preserves it.
-                else if (ch == '\n') {
-                    newString.append('\\');
-                    newString.append('\n');
-                }
-                else if (ch == '\r') {
-                    newString.append('\\');
-                    newString.append('\n');
-                    i++;
-                    // if this is a CRLF pair, add the second char also
-                    if (i < s.length() && s.charAt(i) == '\n') {
-                        newString.append('\r');
-                    }
-                }
-
+                previousChar = ch;
             }
-            // no fold point found, we punt, append the remainder and leave.
+
+            // no fold point at all...take the remainder as one long line.
             if (breakPoint == -1) {
                 newString.append(s);
-                return newString.toString();
+                s = "";
+                break;
             }
-            newString.append(s.substring(0, breakPoint));
+
+            // append the segment plus a soft line break, reusing the whitespace
+            // character as the continuation character on the new line.
+            newString.append(s, 0, breakPoint);
             newString.append("\r\n");
-            newString.append(breakChar);
+            newString.append(s.charAt(breakPoint));
             // chop the string
             s = s.substring(breakPoint + 1);
             // start again, and we've used the first char of the limit already with the whitespace char.
             used = 1;
         }
 
-        // add on the remainder, and return
+        // add on the remainder, then make sure any embedded line breaks are usable.
         newString.append(s);
-        return newString.toString();
+        return fixupLineBreaks(newString.toString());
+    }
+
+
+    /**
+     * Clean up embedded line breaks in a header value so the folded
+     * result stays parseable (and can't be used for header injection):
+     * whitespace-only lines are dropped, every line break is normalized
+     * to CRLF, and any line that doesn't already begin with whitespace
+     * gets a leading blank.
+     *
+     * @param s      The candidate string.
+     *
+     * @return The string with all line breaks in continuation form.
+     */
+    private static String fixupLineBreaks(final String s) {
+        // scan for a line break first; most strings don't have any, and we
+        // can return them untouched.
+        if (s.indexOf('\r') < 0 && s.indexOf('\n') < 0) {
+            return s;
+        }
+
+        final int length = s.length();
+        final StringBuilder result = new StringBuilder(length + 8);
+
+        int lineStart = 0;
+        int i = 0;
+        while (i <= length) {
+            // at a break character or the end of the data, the current line is complete.
+            if (i == length || s.charAt(i) == '\r' || s.charAt(i) == '\n') {
+                final String line = s.substring(lineStart, i);
+                // completely blank lines are dropped from the output
+                if (!line.trim().isEmpty()) {
+                    if (result.length() > 0) {
+                        result.append("\r\n");
+                        // continuation lines must start with whitespace
+                        final char first = line.charAt(0);
+                        if (first != ' ' && first != '\t') {
+                            result.append(' ');
+                        }
+                    }
+                    result.append(line);
+                }
+                // step over the line break, treating CRLF as a single break
+                if (i < length && s.charAt(i) == '\r' && i + 1 < length && s.charAt(i + 1) == '\n') {
+                    i++;
+                }
+                lineStart = i + 1;
+            }
+            i++;
+        }
+        return result.toString();
     }
 
     /**
-     * Unfold a folded string.  The unfolding process will remove
-     * any line breaks that are not escaped and which are also followed
-     * by whitespace characters.
+     * Unfold a folded string.  The unfolding process removes line breaks
+     * that are followed by whitespace (leaving the whitespace in place),
+     * and honors a backslash ahead of a line break as a request to keep
+     * the break in the result.
      *
      * @param s      The folded string.
      *
@@ -1206,89 +1237,37 @@ public class MimeUtility {
             return s;
         }
 
-        // we need to scan and fix things up.
         final int length = s.length();
+        final StringBuilder newString = new StringBuilder(length);
 
-        final StringBuffer newString = new StringBuffer(length);
-
-        // scan the entire string
         for (int i = 0; i < length; i++) {
             final char ch = s.charAt(i);
 
-            // we have a backslash.  In folded strings, escape characters are only processed as such if
-            // they precede line breaks.  Otherwise, we leave it be.
-            if (ch == '\\') {
-                // escape at the very end?  Just add the character.
-                if (i == length - 1) {
-                    newString.append(ch);
+            if (ch == '\r' || ch == '\n') {
+                // find the first position after this line break, treating
+                // CRLF as a single break.
+                int next = i + 1;
+                if (ch == '\r' && next < length && s.charAt(next) == '\n') {
+                    next++;
                 }
+
+                // a backslash directly ahead of the break marks it as data: drop the
+                // backslash (already copied, so remove it) and keep the break as-is.
+                if (newString.length() > 0 && newString.charAt(newString.length() - 1) == '\\') {
+                    newString.setLength(newString.length() - 1);
+                    newString.append(s, i, next);
+                }
+                // a fold: the break disappears when followed by whitespace (which is
+                // kept), or when it sits at the very end of the data.
+                else if (next >= length || s.charAt(next) == ' ' || s.charAt(next) == '\t') {
+                    // nothing appended; the whitespace that follows is copied normally
+                }
+                // not a continuation line; the break is real data and stays.
                 else {
-                    final int nextChar = s.charAt(i + 1);
-
-                    // naked newline?  Add the new line to the buffer, and skip the escape char.
-                    if (nextChar == '\n') {
-                        newString.append('\n');
-                        i++;
-                    }
-                    else if (nextChar == '\r') {
-                        // just the CR left?  Add it, removing the escape.
-                        if (i == length - 2 || s.charAt(i + 2) != '\r') {
-                            newString.append('\r');
-                            i++;
-                        }
-                        else {
-                            // toss the escape, add both parts of the CRLF, and skip over two chars.
-                            newString.append('\r');
-                            newString.append('\n');
-                            i += 2;
-                        }
-                    }
-                    else {
-                        // an escape for another purpose, just copy it over.
-                        newString.append(ch);
-                    }
+                    newString.append(s, i, next);
                 }
-            }
-            // we have an unescaped line break
-            else if (ch == '\n' || ch == '\r') {
-                // remember the position in case we need to backtrack.
-                boolean CRLF = false;
-
-                if (ch == '\r') {
-                    // check to see if we need to step over this.
-                    if (i < length - 1 && s.charAt(i + 1) == '\n') {
-                        i++;
-                        // flag the type so we know what we might need to preserve.
-                        CRLF = true;
-                    }
-                }
-
-                // get a temp position scanner.
-                final int scan = i + 1;
-
-                // does a blank follow this new line?  we need to scrap the new line and reduce the leading blanks
-                // down to a single blank.
-                if (scan < length && s.charAt(scan) == ' ') {
-                    // add the character
-                    newString.append(' ');
-
-                    // scan over the rest of the blanks
-                    i = scan + 1;
-                    while (i < length && s.charAt(i) == ' ') {
-                        i++;
-                    }
-                    // we'll increment down below, so back up to the last blank as the current char.
-                    i--;
-                }
-                else {
-                    // we must keep this line break.  Append the appropriate style.
-                    if (CRLF) {
-                        newString.append("\r\n");
-                    }
-                    else {
-                        newString.append(ch);
-                    }
-                }
+                // resume scanning after the line break
+                i = next - 1;
             }
             else {
                 // just a normal, ordinary character
@@ -1329,6 +1308,43 @@ public class MimeUtility {
 
     static final boolean nonascii (int a){
         return a >= 0177 || (a < 040 && a != '\r' && a != '\n' && a != '\t');
+    }
+
+    /**
+     * Break a comma-separated Content-Language header value into
+     * its individual language tags.
+     *
+     * @param header The raw header value (may be null).
+     *
+     * @return An array with one entry per language tag, or null if the
+     *         header was null or contained no tags.
+     */
+    static String[] parseLanguageList(final String header) {
+        if (header == null) {
+            return null;
+        }
+
+        final List<String> languages = new ArrayList<String>();
+
+        // tokenize using the MIME rules; every ATOM between the comma delimiters
+        // is a language tag.
+        final HeaderTokenizer tokenizer = new HeaderTokenizer(header, HeaderTokenizer.MIME);
+        try {
+            HeaderTokenizer.Token token = tokenizer.next();
+            while (token.getType() != HeaderTokenizer.Token.EOF) {
+                if (token.getType() == HeaderTokenizer.Token.ATOM) {
+                    languages.add(token.getValue());
+                }
+                token = tokenizer.next();
+            }
+        } catch (final ParseException e) {
+            // stop scanning on a syntax error, keeping whatever we managed to collect
+        }
+
+        if (languages.isEmpty()) {
+            return null;
+        }
+        return languages.toArray(new String[languages.size()]);
     }
 
     /**

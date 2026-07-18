@@ -155,6 +155,12 @@ public class MimeMultipart extends Multipart {
         ds = dataSource;
         if (dataSource instanceof MultipartDataSource) {
             super.setMultipartDataSource((MultipartDataSource) dataSource);
+            // even though the parts come pre-parsed from the data source, we still
+            // need the content type initialized; writeTo() and getContentType()
+            // depend on it.
+            final String sourceType = dataSource.getContentType();
+            contentType = sourceType != null ? sourceType : "multipart/mixed";
+            type = new ContentType(contentType);
             parsed = true;
         } else {
             // We keep the original, provided content type string so that we
@@ -345,11 +351,13 @@ public class MimeMultipart extends Multipart {
      */
     private byte[] readTillFirstBoundary(final BufferedInputStream pushbackInStream) throws MessagingException {
         final ByteArrayOutputStream preambleStream = new ByteArrayOutputStream();
+        final ByteArrayOutputStream lineTerminator = new ByteArrayOutputStream();
 
         try {
             while (true) {
-                // read the next line
-                final byte[] line = readLine(pushbackInStream);
+                // read the next line, capturing the terminator bytes that ended it
+                lineTerminator.reset();
+                final byte[] line = readLine(pushbackInStream, lineTerminator);
                 // hit an EOF?
                 if (line == null || line.length==0) {
                     return null;//throw new MessagingException("Unexpected End of Stream while searching for first Mime Boundary");
@@ -364,10 +372,10 @@ public class MimeMultipart extends Multipart {
                     return stripLinearWhiteSpace(line);
                 }
                 else {
-                    // this is part of the preamble.
+                    // this is part of the preamble.  Keep the terminator exactly as
+                    // it appeared in the source data.
                     preambleStream.write(line);
-                    preambleStream.write('\r');
-                    preambleStream.write('\n');
+                    lineTerminator.writeTo(preambleStream);
                 }
             }
         } catch (final IOException ioe) {
@@ -416,11 +424,13 @@ public class MimeMultipart extends Multipart {
      */
     private boolean readTillFirstBoundary(final BufferedInputStream pushbackInStream, final byte[] boundary) throws MessagingException {
         final ByteArrayOutputStream preambleStream = new ByteArrayOutputStream();
+        final ByteArrayOutputStream lineTerminator = new ByteArrayOutputStream();
 
         try {
             while (true) {
-                // read the next line
-                final byte[] line = readLine(pushbackInStream);
+                // read the next line, capturing the terminator bytes that ended it
+                lineTerminator.reset();
+                final byte[] line = readLine(pushbackInStream, lineTerminator);
                 // hit an EOF?
                 if (line == null || line.length==0) {
                 	return false;//throw new MessagingException("Unexpected End of Stream while searching for first Mime Boundary");
@@ -436,10 +446,10 @@ public class MimeMultipart extends Multipart {
                     return true;
                 }
 
-                // this is part of the preamble.
+                // this is part of the preamble.  Keep the terminator exactly as
+                // it appeared in the source data.
                 preambleStream.write(line);
-                preambleStream.write('\r');
-                preambleStream.write('\n');
+                lineTerminator.writeTo(preambleStream);
             }
         } catch (final IOException ioe) {
             throw new MessagingException(ioe.toString(), ioe);
@@ -487,15 +497,21 @@ public class MimeMultipart extends Multipart {
 
     /**
      * Read a single line of data from the input stream,
-     * returning it as an array of bytes.
+     * returning it as an array of bytes.  The bytes that
+     * terminated the line (CR, LF, or CRLF) are recorded in
+     * the supplied terminator stream so callers can reproduce
+     * the source data exactly.
      *
-     * @param in     The source input stream.
+     * @param in         The source input stream.
+     * @param terminator Receives the line terminator bytes consumed for
+     *                   this line (empty at EOF or when the data ends
+     *                   without a terminator).
      *
      * @return A byte array containing the line data.  Returns
      *         null if there's nothing left in the stream.
      * @exception MessagingException
      */
-    private byte[] readLine(final BufferedInputStream in) throws IOException
+    private byte[] readLine(final BufferedInputStream in, final ByteArrayOutputStream terminator) throws IOException
     {
         final ByteArrayOutputStream line = new ByteArrayOutputStream();
 
@@ -509,6 +525,7 @@ public class MimeMultipart extends Multipart {
                 break;
             }
             else if (value == '\r') {
+                terminator.write('\r');
                 in.mark(10);
                 value = in.read();
                 // we expect to find a linefeed after the carriage return, but
@@ -516,10 +533,14 @@ public class MimeMultipart extends Multipart {
                 if (value != '\n') {
                     in.reset();
                 }
+                else {
+                    terminator.write('\n');
+                }
                 break;
             }
             else if (value == '\n') {
                 // naked linefeed, allow that
+                terminator.write('\n');
                 break;
             }
             else {

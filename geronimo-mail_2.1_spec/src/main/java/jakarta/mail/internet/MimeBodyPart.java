@@ -262,7 +262,9 @@ public class MimeBodyPart extends BodyPart implements MimePart {
     }
 
     public String[] getContentLanguage() throws MessagingException {
-        return getHeader("Content-Language");
+        // the header holds a comma-separated list of language tags that we need to
+        // break apart into individual values.
+        return MimeUtility.parseLanguageList(getHeader("Content-Language", ","));
     }
 
     public void setContentLanguage(final String[] languages) throws MessagingException {
@@ -316,7 +318,10 @@ public class MimeBodyPart extends BodyPart implements MimePart {
         final String disposition = getSingleHeader("Content-Disposition");
         String filename = null;
 
-        if (disposition != null) {
+        // a blank header can show up on messages whose headers were merged from a
+        // store's metadata (e.g. IMAP BODYSTRUCTURE without disposition information)
+        // and simply means "no disposition"
+        if (disposition != null && !disposition.trim().isEmpty()) {
             filename = new ContentDisposition(disposition).getParameter("filename");
         }
 
@@ -364,18 +369,52 @@ public class MimeBodyPart extends BodyPart implements MimePart {
 
         // now create a disposition object and set the parameter.
         final ContentDisposition contentDisposition = new ContentDisposition(disposition);
-        contentDisposition.setParameter("filename", name);
+        setFileNameParameter(contentDisposition, name);
 
         // serialize this back out and reset.
         setHeader("Content-Disposition", contentDisposition.toString());
 
         // The Sun implementation appears to update the Content-type name parameter too, based on
-        // another system property
+        // another system property.  Only do this when a Content-Type header actually exists;
+        // otherwise we'd force a default (text/plain) header into place and updateHeaders()
+        // would never get a chance to apply the type from the data handler.  When a header is
+        // eventually created, updateHeaders() copies the filename into the name parameter.
         if (SessionUtil.getBooleanProperty(MIME_SETCONTENTTYPEFILENAME, true)) {
-            final ContentType type = new ContentType(getContentType());
-            type.setParameter("name", name);
-            setHeader("Content-Type", type.toString());
+            final String existingType = getSingleHeader("Content-Type");
+            if (existingType != null) {
+                try {
+                    final ContentType type = new ContentType(existingType);
+                    type.setParameter("name", name);
+                    setHeader("Content-Type", type.toString());
+                } catch (final ParseException e) {
+                    // leave an unparseable header alone
+                }
+            }
         }
+    }
+
+    /**
+     * Store a file name parameter on a Content-Disposition, encoding
+     * non-ASCII names in RFC 2231 form (filename*=charset''percent-encoded)
+     * using the default MIME charset.  Shared by MimeBodyPart and
+     * MimeMessage setFileName() implementations.
+     *
+     * @param disposition The target disposition object.
+     * @param name        The file name value to record.
+     */
+    static void setFileNameParameter(final ContentDisposition disposition, final String name) {
+        if (name == null) {
+            disposition.setParameter("filename", name);
+            return;
+        }
+        // route the value through the charset-aware setter; ASCII names are stored
+        // unchanged, non-ASCII names get the RFC 2231 encoded form.
+        ParameterList list = disposition.getParameterList();
+        if (list == null) {
+            list = new ParameterList();
+            disposition.setParameterList(list);
+        }
+        list.set("filename", name, MimeUtility.getDefaultMIMECharset());
     }
 
     public InputStream getInputStream() throws MessagingException, IOException {

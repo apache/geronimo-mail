@@ -247,9 +247,13 @@ public class MailDateFormat extends SimpleDateFormat {
             // set the index of how far we've parsed this 
             pos.setIndex(current);
             
-            // create a calendar for creating the date 
-            final Calendar greg = new GregorianCalendar(TimeZone.getTimeZone("GMT")); 
-            // we inherit the leniency rules 
+            // create a calendar for creating the date
+            final Calendar greg = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+            // the calendar starts out seeded with the current time.  All fields that
+            // set() does not touch (notably MILLISECOND) would otherwise leak into the
+            // parsed result, so wipe everything first.
+            greg.clear();
+            // we inherit the leniency rules
             greg.setLenient(lenient);
             greg.set(year, month, day, hour, minutes, seconds); 
             // now adjust by the offset.  This seems a little strange, but we  

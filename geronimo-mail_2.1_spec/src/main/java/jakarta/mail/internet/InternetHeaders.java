@@ -660,13 +660,29 @@ public class InternetHeaders {
      * @exception IOException
      */
     void writeTo(final OutputStream out, final String[] ignore) throws IOException {
+        writeTo(out, ignore, false);
+    }
+
+
+    /**
+     * Write out the set of headers, except for any
+     * headers specified in the optional ignore list.
+     *
+     * @param out    The output stream.
+     * @param ignore The optional ignore list.
+     * @param utf8   true to emit the header bytes in UTF-8, false for the
+     *               classic ISO8859-1 encoding.
+     *
+     * @exception IOException
+     */
+    void writeTo(final OutputStream out, final String[] ignore, final boolean utf8) throws IOException {
         if (ignore == null) {
             // write out all header lines with non-null values
             for (int i = 0; i < headers.size(); i++) {
                 final InternetHeader header = headers.get(i);
                 // we only include headers with real values, no placeholders
                 if (header.getValue() != null) {
-                    header.writeTo(out);
+                    header.writeTo(out, utf8);
                 }
             }
         }
@@ -677,7 +693,7 @@ public class InternetHeaders {
                 // we only include headers with real values, no placeholders
                 if (header.getValue() != null) {
                     if (!matchHeader(header.getName(), ignore)) {
-                        header.writeTo(out);
+                        header.writeTo(out, utf8);
                     }
                 }
             }
@@ -750,10 +766,18 @@ public class InternetHeaders {
         }
 
         void writeTo(final OutputStream out) throws IOException {
-            out.write(name.getBytes("ISO8859-1"));
+            writeTo(out, false);
+        }
+
+        void writeTo(final OutputStream out, final boolean utf8) throws IOException {
+            // the default wire encoding is ISO8859-1; UTF-8 is only used when
+            // mail.mime.allowutf8 processing has been requested by the caller.
+            final java.nio.charset.Charset charset =
+                utf8 ? StandardCharsets.UTF_8 : StandardCharsets.ISO_8859_1;
+            out.write(name.getBytes(charset));
             out.write(':');
             out.write(' ');
-            out.write(value.getBytes("ISO8859-1"));
+            out.write(value.getBytes(charset));
             out.write('\r');
             out.write('\n');
         }

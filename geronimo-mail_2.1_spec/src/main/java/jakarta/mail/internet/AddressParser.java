@@ -728,9 +728,10 @@ class AddressParser {
                     break;
 
                 // potentially an atom...if it starts with an allowed atom character, we
-                // parse out the token, otherwise this is invalid.
+                // parse out the token, otherwise this is invalid.  Characters above the
+                // ASCII range are tolerated in atoms to support UTF-8 addresses (RFC 6532).
                 default:
-                    if (ch < 040 || ch >= 0177) {
+                    if (ch < 040 || (ch >= 0177 && ch < 0200)) {
                         syntaxError("Illegal character in address", position);
                     }
 
@@ -884,7 +885,9 @@ class AddressParser {
         while (moreCharacters()) {
 
             final char ch = currentChar();
-            if (isAtom(ch)) {
+            // anything above the ASCII range is accepted inside an atom so that
+            // UTF-8 addresses (RFC 6532) can be parsed.
+            if (isAtom(ch) || ch >= 0200) {
                 nextChar();
             }
             else {

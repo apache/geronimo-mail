@@ -22,6 +22,7 @@ package jakarta.mail.internet;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @version $Rev$ $Date$
@@ -166,5 +167,24 @@ public class ParameterListTest {
         final ParameterList list2 = new ParameterList(encoded);
         assertEquals(value, list.get("one"));
         assertEquals(list2.toString(), encodedTest);
+    }
+
+    @Test
+    public void testStrictDecodeRejectsBadHex() {
+        System.setProperty("mail.mime.decodeparameters", "true");
+        System.setProperty("mail.mime.decodeparameters.strict", "true");
+        try {
+            // "%2x" is not a valid hex escape, so strict decoding must raise a ParseException
+            assertThrows(ParseException.class, () ->
+                new ParameterList("; filename*=us-ascii'en-us'This%2xis%20%2A%2A%2Afun%2A%2A%2A"));
+            // a valid encoding still parses in strict mode
+            final ParameterList ok = new ParameterList("; filename*=us-ascii'en-us'This%20is%20fun");
+            assertEquals("This is fun", ok.get("filename"));
+        } catch (final ParseException e) {
+            throw new AssertionError("valid RFC2231 value failed to parse", e);
+        } finally {
+            System.clearProperty("mail.mime.decodeparameters");
+            System.clearProperty("mail.mime.decodeparameters.strict");
+        }
     }
 }

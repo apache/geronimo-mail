@@ -156,7 +156,14 @@ public class MimeBodyPartTest {
         final ContentDisposition disp = new ContentDisposition(part.getHeader("Content-Disposition", null));
         assertEquals("test.dat", disp.getParameter("filename"));
 
+        // setting a file name must not force a (default) Content-Type header into existence
+        assertNull(part.getHeader("Content-Type", null));
+
+        // but an existing Content-Type header gets the name parameter updated
+        part.setHeader("Content-Type", "application/octet-stream");
+        part.setFileName("test.dat");
         final ContentType type = new ContentType(part.getHeader("Content-Type", null));
+        assertEquals("application/octet-stream", type.getBaseType());
         assertEquals("test.dat", type.getParameter("name"));
 
         final MimeBodyPart part2 = new MimeBodyPart();
@@ -167,6 +174,59 @@ public class MimeBodyPartTest {
         part2.setHeader("Content-Type", null);
         part2.setHeader("Content-Disposition", disp.toString());
         assertEquals("test.dat", part2.getFileName());
+    }
+
+    @Test
+    public void testSetFileNameEncoded() throws Exception {
+        System.setProperty("mail.mime.charset", "utf-8");
+        try {
+            // a non-ASCII filename must be written in RFC 2231 encoded form by default
+            final MimeBodyPart part = new MimeBodyPart();
+            part.setFileName("¡");
+            final String disposition = part.getHeader("Content-Disposition", null);
+            assertTrue(disposition.contains("filename*=utf-8''%C2%A1"),
+                "unexpected disposition: " + disposition);
+            // and it must decode back to the original value
+            assertEquals("¡", part.getFileName());
+
+            // plain ASCII names keep the simple form
+            final MimeBodyPart ascii = new MimeBodyPart();
+            ascii.setFileName("simple.txt");
+            assertEquals("attachment; filename=simple.txt",
+                ascii.getHeader("Content-Disposition", null));
+        } finally {
+            System.clearProperty("mail.mime.charset");
+        }
+    }
+
+    @Test
+    public void testContentLanguageSplit() throws Exception {
+        final MimeBodyPart part = new MimeBodyPart();
+        final String[] languages = {"us-english", "uk-english", "in-punjabi", "en", "fr", "de"};
+        part.setContentLanguage(languages);
+        final String[] retrieved = part.getContentLanguage();
+        assertEquals(languages.length, retrieved.length);
+        for (int i = 0; i < languages.length; i++) {
+            assertEquals(languages[i], retrieved[i]);
+        }
+        // no header at all reports null
+        assertNull(new MimeBodyPart().getContentLanguage());
+    }
+
+    @Test
+    public void testAttachFileWithExplicitContentType() throws Exception {
+        // an explicit content type supplied to attachFile must survive updateHeaders,
+        // even though setFileName is called while no Content-Type header exists yet
+        final MimeBodyPart part = new MimeBodyPart();
+        part.attachFile(testInput, "test/test", "base64");
+        part.updateHeaders();
+
+        assertTrue(part.isMimeType("test/test"));
+        assertEquals("base64", part.getEncoding());
+        // updateHeaders copies the file name into the name parameter when it creates the header
+        final ContentType type = new ContentType(part.getHeader("Content-Type", null));
+        assertEquals(testInput.getName(), type.getParameter("name"));
+        assertEquals(testInput.getName(), part.getFileName());
     }
 
 

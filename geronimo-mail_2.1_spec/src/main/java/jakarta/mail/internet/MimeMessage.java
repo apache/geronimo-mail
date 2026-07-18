@@ -54,6 +54,7 @@ public class MimeMessage extends Message implements MimePart {
 
 	private static final String MAIL_ALTERNATES = "mail.alternates";
 	private static final String MAIL_REPLYALLCC = "mail.replyallcc";
+	private static final String MIME_ALLOWUTF8 = "mail.mime.allowutf8";
 
     // static used to ensure message ID uniqueness
     private static int messageID = 0;
@@ -154,6 +155,8 @@ public class MimeMessage extends Message implements MimePart {
         // empty messages are modified, because the content is not there, and require saving before use.
         modified = true;
         saved = false;
+        // pick up the UTF-8 header switch from the session configuration
+        allowUtf8 = SessionUtil.getBooleanProperty(session, MIME_ALLOWUTF8, false);
     }
 
     /**
@@ -180,8 +183,10 @@ public class MimeMessage extends Message implements MimePart {
      */
     public MimeMessage(final MimeMessage message) throws MessagingException {
         super(message.session);
-        // get a copy of the source message flags 
-        flags = message.getFlags(); 
+        // pick up the UTF-8 header switch from the session configuration
+        allowUtf8 = SessionUtil.getBooleanProperty(session, MIME_ALLOWUTF8, false);
+        // get a copy of the source message flags
+        flags = message.getFlags();
         // this is somewhat difficult to do.  There's a lot of data in both the superclass and this
         // class that needs to undergo a "deep cloning" operation.  These operations don't really exist
         // on the objects in question, so the only solution I can come up with is to serialize the
@@ -229,6 +234,8 @@ public class MimeMessage extends Message implements MimePart {
         saved = true;
         // we've not filled in the content yet, so this needs to be marked as modified
         modified = true;
+        // pick up the UTF-8 header switch from the session configuration
+        allowUtf8 = SessionUtil.getBooleanProperty(session, MIME_ALLOWUTF8, false);
     }
 
     /**
@@ -868,7 +875,9 @@ public class MimeMessage extends Message implements MimePart {
     }
 
     public String[] getContentLanguage() throws MessagingException {
-        return getHeader("Content-Language");
+        // the header holds a comma-separated list of language tags that we need to
+        // break apart into individual values.
+        return MimeUtility.parseLanguageList(getHeader("Content-Language", ","));
     }
 
     public void setContentLanguage(final String[] languages) throws MessagingException {
@@ -891,11 +900,16 @@ public class MimeMessage extends Message implements MimePart {
     }
 
     public String getFileName() throws MessagingException {
-        // see if there is a disposition.  If there is, parse off the filename parameter.
-        final String disposition = getDisposition();
+        // NB:  We need the full header value here, not the result of getDisposition(),
+        // because getDisposition() strips off the parameters (including the filename
+        // parameter we're looking for).  This mirrors MimeBodyPart.getFileName().
+        final String disposition = getSingleHeader("Content-Disposition");
         String filename = null;
 
-        if (disposition != null) {
+        // a blank header can show up on messages whose headers were merged from a
+        // store's metadata (e.g. IMAP BODYSTRUCTURE without disposition information)
+        // and simply means "no disposition"
+        if (disposition != null && !disposition.trim().isEmpty()) {
             filename = new ContentDisposition(disposition).getParameter("filename");
         }
 
@@ -911,7 +925,9 @@ public class MimeMessage extends Message implements MimePart {
             }
         }
         // if we have a name, we might need to decode this if an additional property is set.
-        if (filename != null && SessionUtil.getBooleanProperty(session, MIME_DECODEFILENAME, false)) {
+        // this is controlled by a System property (not a session property), just like
+        // MimeBodyPart handles it.
+        if (filename != null && SessionUtil.getBooleanProperty(MIME_DECODEFILENAME, false)) {
             try {
                 filename = MimeUtility.decodeText(filename);
             } catch (final UnsupportedEncodingException e) {
@@ -924,9 +940,9 @@ public class MimeMessage extends Message implements MimePart {
 
 
     public void setFileName(String name) throws MessagingException {
-        // there's an optional session property that requests file name encoding...we need to process this before
-        // setting the value.
-        if (name != null && SessionUtil.getBooleanProperty(session, MIME_ENCODEFILENAME, false)) {
+        // there's an optional System property that requests file name encoding...we need to process this before
+        // setting the value (same lookup MimeBodyPart uses).
+        if (name != null && SessionUtil.getBooleanProperty(MIME_ENCODEFILENAME, false)) {
             try {
                 name = MimeUtility.encodeText(name);
             } catch (final UnsupportedEncodingException e) {
@@ -942,10 +958,13 @@ public class MimeMessage extends Message implements MimePart {
         }
         // now create a disposition object and set the parameter.
         final ContentDisposition contentDisposition = new ContentDisposition(disposition);
-        contentDisposition.setParameter("filename", name);
+        MimeBodyPart.setFileNameParameter(contentDisposition, name);
 
-        // serialize this back out and reset.
-        setDisposition(contentDisposition.toString());
+        // write the header directly.  Going through setDisposition() would treat the
+        // serialized "disposition; filename=..." string as a bare disposition value and
+        // merge it with any stale parameters from the previous header value.  This
+        // mirrors MimeBodyPart.setFileName().
+        setHeader("Content-Disposition", contentDisposition.toString());
     }
 
     public InputStream getInputStream() throws MessagingException, IOException {
@@ -1275,8 +1294,9 @@ public class MimeMessage extends Message implements MimePart {
             saveChanges();
         }
 
-        // write out the headers first
-        headers.writeTo(out, ignoreHeaders);
+        // write out the headers first.  When UTF-8 headers are enabled for this
+        // message, the header bytes are written in UTF-8 rather than ISO8859-1.
+        headers.writeTo(out, ignoreHeaders, allowUtf8);
         // add the separater between the headers and the data portion.
         out.write('\r');
         out.write('\n');
@@ -1692,6 +1712,16 @@ public class MimeMessage extends Message implements MimePart {
         if (addresses == null) {
             headers.removeHeader(header);
         }
+        else if (allowUtf8) {
+            // with UTF-8 headers enabled, address values keep their raw unicode form
+            final String value = InternetAddress.toUnicodeString(addresses, header.length() + 2);
+            if (value == null) {
+                headers.removeHeader(header);
+            }
+            else {
+                headers.setHeader(header, value);
+            }
+        }
         else {
             headers.setHeader(header, addresses);
         }
@@ -1719,7 +1749,9 @@ public class MimeMessage extends Message implements MimePart {
             System.arraycopy(a, 0, anew, 0, a.length);
             System.arraycopy(addresses, 0, anew, a.length, addresses.length);
         }
-        final String s = InternetAddress.toString(anew, header.length() + 2);
+        final String s = allowUtf8 ?
+                InternetAddress.toUnicodeString(anew, header.length() + 2) :
+                InternetAddress.toString(anew, header.length() + 2);
         if (s == null) {
             return;
         }

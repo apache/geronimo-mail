@@ -628,7 +628,7 @@ public class InternetAddress extends Address implements Cloneable {
             final StringBuffer buf = new StringBuffer(addresses.length * 32);
             for (int i = 0; i < addresses.length; i++) {
 
-                String converted = ((InternetAddress)addresses[0]).toUnicodeString();
+                String converted = ((InternetAddress)addresses[i]).toUnicodeString();
 
                 if (MimeUtility.verifyAscii(converted) != MimeUtility.ALL_ASCII){
                     sawNonAsciiCharacters = true;

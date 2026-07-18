@@ -527,6 +527,105 @@ public class MimeMessageTest {
     }
 
 
+    @Test
+    public void testGetFileNameFromDisposition() throws MessagingException {
+        final MimeMessage msg = new MimeMessage(session);
+        // the filename must survive a set/get round trip even though getDisposition()
+        // only returns the bare disposition value.
+        msg.setFileName("mailworld.txt");
+        assertEquals("mailworld.txt", msg.getFileName());
+        assertEquals(Part.ATTACHMENT, msg.getDisposition());
+
+        // a repeated set must fully replace the previous filename parameter
+        msg.setFileName("other.txt");
+        assertEquals("other.txt", msg.getFileName());
+
+        // a filename on a received header must be visible too
+        final MimeMessage msg2 = new MimeMessage(session);
+        msg2.setHeader("Content-Disposition", "attachment; filename=incoming.txt");
+        assertEquals("incoming.txt", msg2.getFileName());
+    }
+
+    @Test
+    public void testFileNameSystemProperties() throws MessagingException {
+        // the encode/decode filename controls are System properties, and must be honored
+        // even when the session knows nothing about them.
+        System.setProperty("mail.mime.encodefilename", "false");
+        System.setProperty("mail.mime.decodefilename", "true");
+        try {
+            final MimeMessage msg = new MimeMessage(session);
+            msg.setFileName("=?ISO646-US?Q?=3F=3F-a=5Fgerman=5Fcharacter?=");
+            assertEquals("??-a_german_character", msg.getFileName());
+        } finally {
+            System.clearProperty("mail.mime.encodefilename");
+            System.clearProperty("mail.mime.decodefilename");
+        }
+    }
+
+    @Test
+    public void testSetFileNameEncoded() throws MessagingException {
+        System.setProperty("mail.mime.charset", "utf-8");
+        try {
+            // a non-ASCII filename must be written in RFC 2231 encoded form by default
+            final MimeMessage msg = new MimeMessage(session);
+            msg.setFileName("¡");
+            final String disposition = msg.getHeader("Content-Disposition", null);
+            assertTrue(disposition.contains("filename*=utf-8''%C2%A1"),
+                "unexpected disposition: " + disposition);
+            assertEquals("¡", msg.getFileName());
+        } finally {
+            System.clearProperty("mail.mime.charset");
+        }
+    }
+
+    @Test
+    public void testContentLanguageSplit() throws MessagingException {
+        final MimeMessage msg = new MimeMessage(session);
+        final String[] languages = {"en", "fr", "de"};
+        msg.setContentLanguage(languages);
+        // the comma-separated header must be split back into individual tags
+        final String[] retrieved = msg.getContentLanguage();
+        assertEquals(3, retrieved.length);
+        assertEquals("en", retrieved[0]);
+        assertEquals("fr", retrieved[1]);
+        assertEquals("de", retrieved[2]);
+    }
+
+    @Test
+    public void testAllowUtf8Headers() throws MessagingException, IOException {
+        final String mailbox = "testα@exampleα.com";
+        final String personal = "testα userα";
+
+        final Properties props = new Properties();
+        props.setProperty("mail.mime.allowutf8", "true");
+        final Session utf8Session = Session.getInstance(props);
+
+        final MimeMessage msg = new MimeMessage(utf8Session);
+        msg.setRecipient(Message.RecipientType.TO, new InternetAddress(mailbox));
+        msg.setHeader("Header", personal);
+        msg.setText("");
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        msg.writeTo(out);
+        final String written = new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(written.contains("To: " + mailbox + "\r\n"), "missing UTF-8 To header:\n" + written);
+        assertTrue(written.contains("Header: " + personal + "\r\n"), "missing UTF-8 custom header:\n" + written);
+
+        // and reading the message back with the same session restores the unicode values
+        final MimeMessage reread = new MimeMessage(utf8Session, new ByteArrayInputStream(out.toByteArray()));
+        assertEquals(mailbox, ((InternetAddress) reread.getRecipients(Message.RecipientType.TO)[0]).getAddress());
+        assertEquals(personal, reread.getHeader("Header", null));
+
+        // without the property, header output remains ISO8859-1 based
+        final MimeMessage plain = new MimeMessage(session);
+        plain.setHeader("X-Test", "abc");
+        plain.setText("");
+        final ByteArrayOutputStream plainOut = new ByteArrayOutputStream();
+        plain.writeTo(plainOut);
+        assertTrue(new String(plainOut.toByteArray(), java.nio.charset.StandardCharsets.ISO_8859_1)
+            .contains("X-Test: abc\r\n"));
+    }
+
     @BeforeEach
     public void setUp() throws Exception {
         defaultMap = CommandMap.getDefaultCommandMap();
@@ -544,5 +643,15 @@ public class MimeMessageTest {
     @AfterEach
     public void tearDown() throws Exception {
         CommandMap.setDefaultCommandMap(defaultMap);
+    }
+
+    @Test
+    public void testGetFileNameWithBlankDispositionHeader() throws Exception {
+        // headers merged from store metadata can carry an empty
+        // Content-Disposition value, which must read as "no file name"
+        // rather than failing to parse
+        MimeMessage msg = new MimeMessage(Session.getInstance(new Properties()));
+        msg.setHeader("Content-Disposition", "");
+        assertNull(msg.getFileName());
     }
 }

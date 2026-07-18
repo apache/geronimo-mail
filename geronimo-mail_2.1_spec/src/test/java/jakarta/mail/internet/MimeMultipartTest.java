@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import jakarta.mail.BodyPart;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
+import jakarta.mail.MultipartDataSource;
 import jakarta.mail.Session;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -292,6 +293,68 @@ public class MimeMultipartTest {
 		}
     	
     	return null;
+    }
+
+    @Test
+    public void testPreambleLineEndingsPreserved() throws Exception {
+        // LF-only source data must produce an LF-only preamble
+        final String lfMessage = "Preamble\n--abc\nContent-Type: text/plain\n\nbody\n--abc--\n";
+        final MimeMultipart lfPart = new MimeMultipart(new jakarta.mail.util.ByteArrayDataSource(
+                lfMessage.getBytes("ISO8859-1"), "multipart/mixed; boundary=abc"));
+        assertEquals(1, lfPart.getCount());
+        assertEquals("Preamble\n", lfPart.getPreamble());
+
+        // CRLF source data keeps CRLF terminators, including multi-line preambles
+        final String crlfMessage = "line one\r\nline two\r\n--abc\r\nContent-Type: text/plain\r\n\r\nbody\r\n--abc--\r\n";
+        final MimeMultipart crlfPart = new MimeMultipart(new jakarta.mail.util.ByteArrayDataSource(
+                crlfMessage.getBytes("ISO8859-1"), "multipart/mixed; boundary=abc"));
+        assertEquals(1, crlfPart.getCount());
+        assertEquals("line one\r\nline two\r\n", crlfPart.getPreamble());
+    }
+
+    @Test
+    public void testMultipartDataSourceContentType() throws Exception {
+        writeToSetUp();
+        try {
+            // build a MultipartDataSource-backed multipart; the content type must be
+            // taken from the data source so writeTo() can find the boundary
+            final MimeBodyPart part = new MimeBodyPart();
+            part.setContent("Hello World", "text/plain");
+            part.setHeader("Content-Type", "text/plain");
+
+            final MultipartDataSource mds = new MultipartDataSource() {
+                public InputStream getInputStream() throws IOException {
+                    throw new IOException("no stream");
+                }
+                public OutputStream getOutputStream() throws IOException {
+                    throw new IOException("read only");
+                }
+                public String getContentType() {
+                    return "multipart/mixed; boundary=unittestboundary";
+                }
+                public String getName() {
+                    return "test";
+                }
+                public int getCount() {
+                    return 1;
+                }
+                public BodyPart getBodyPart(final int index) {
+                    return part;
+                }
+            };
+
+            final MimeMultipart mp = new MimeMultipart(mds);
+            assertEquals("multipart/mixed; boundary=unittestboundary", mp.getContentType());
+            assertEquals(1, mp.getCount());
+
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            mp.writeTo(out);
+            final String written = out.toString("ISO8859-1");
+            assertTrue(written.contains("--unittestboundary"));
+            assertTrue(written.contains("Hello World"));
+        } finally {
+            writeToTearDown();
+        }
     }
 
     protected void writeToSetUp() throws Exception {

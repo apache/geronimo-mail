@@ -587,6 +587,41 @@ public class InternetAddressTest {
     }
 
 
+    @Test
+    public void testUnicodeAddressParsing() throws Exception {
+        final String mailbox = "testα@exampleα.com";
+        final String personal = "testα userα";
+
+        // an address with UTF-8 atoms must parse (RFC 6532 style)
+        final InternetAddress addr = new InternetAddress(personal + " <" + mailbox + ">");
+        assertEquals(mailbox, addr.getAddress());
+        assertEquals(personal, addr.getPersonal());
+
+        // a bare unicode mailbox parses too
+        assertEquals(mailbox, new InternetAddress(mailbox).getAddress());
+
+        // and unicode rendering keeps the raw characters
+        final InternetAddress addr2 = new InternetAddress(mailbox, personal);
+        assertEquals("\"" + personal + "\" <" + mailbox + ">", addr2.toUnicodeString());
+
+        // multi-address rendering with unicode content
+        final String mailbox2 = "testβ@exampleβ.com";
+        assertEquals(mailbox + ", " + mailbox2,
+            InternetAddress.toUnicodeString(new InternetAddress[] {
+                new InternetAddress(mailbox), new InternetAddress(mailbox2)}));
+    }
+
+    @Test
+    public void testToUnicodeStringMultipleAddresses() throws Exception {
+        // each element of the array must be rendered, not the first one repeatedly
+        final InternetAddress a = new InternetAddress("a@example.com");
+        final InternetAddress b = new InternetAddress("b@example.com");
+        assertEquals("a@example.com, b@example.com",
+            InternetAddress.toUnicodeString(new InternetAddress[] {a, b}));
+        assertEquals("a@example.com, b@example.com",
+            InternetAddress.toUnicodeString(new InternetAddress[] {a, b}, 0));
+    }
+
     private void validateAddress(final InternetAddress a, final String address, final String personal, final String toString, final boolean group)
     {
         assertEquals(a.getAddress(), address, "Invalid address:");

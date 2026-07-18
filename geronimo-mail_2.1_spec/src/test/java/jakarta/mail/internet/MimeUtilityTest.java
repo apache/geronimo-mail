@@ -99,6 +99,56 @@ public class MimeUtilityTest {
     }
 
 
+    @Test
+    public void testFoldEmbeddedLineBreaks() throws Exception {
+        final String a66 = "a".repeat(66);
+        final String a87 = "a".repeat(87);
+        final String a72 = "a".repeat(72);
+
+        // strings that fit are returned unchanged
+        assertEquals("a b c", MimeUtility.fold(0, "a b c"));
+        // trailing whitespace (including line breaks) is trimmed
+        assertEquals("a b c", MimeUtility.fold(0, "a b c \t\r\n"));
+        // long runs with no whitespace are not broken
+        assertEquals(a87, MimeUtility.fold(0, a87));
+        // basic folding keeps the whitespace on the continuation line
+        assertEquals(a66 + "\r\n " + "a".repeat(21), MimeUtility.fold(0, a66 + " " + "a".repeat(21)));
+        // a run of blanks folds ahead of the run and keeps the full run
+        assertEquals(a72 + "\r\n  xxx", MimeUtility.fold(0, a72 + "  xxx"));
+
+        // embedded bare line breaks are rewritten into continuation form
+        assertEquals("a\r\n b", MimeUtility.fold(0, "a\nb"));
+        assertEquals("a\r\n b", MimeUtility.fold(0, "a\rb"));
+        assertEquals("a\r\n b", MimeUtility.fold(0, "a\r\nb"));
+        // blank lines are dropped entirely
+        assertEquals("a\r\n b", MimeUtility.fold(0, "a\n\nb"));
+        // breaks already followed by whitespace stay in continuation form
+        assertEquals("a\r\n b", MimeUtility.fold(0, "a\n b"));
+    }
+
+    @Test
+    public void testUnfoldSemantics() throws Exception {
+        // a break followed by whitespace disappears; the whitespace stays
+        assertEquals("a b", MimeUtility.unfold("a\n b"));
+        assertEquals("a  b", MimeUtility.unfold("a \n b"));
+        assertEquals("a\tb", MimeUtility.unfold("a\n\tb"));
+        assertEquals("a b c", MimeUtility.unfold("a\n b\n c"));
+        // a backslash marks the break as data: backslash removed, break kept
+        assertEquals("a \n b", MimeUtility.unfold("a \\\n b"));
+        assertEquals("a\n b\n c", MimeUtility.unfold("a\\\n b\\\n c"));
+        assertEquals("\n a", MimeUtility.unfold("\\\n a"));
+        // a break not followed by whitespace is real data and stays
+        assertEquals("\na", MimeUtility.unfold("\na"));
+        // a break at the end of the string is removed
+        assertEquals("a", MimeUtility.unfold("a\n"));
+        assertEquals("a ", MimeUtility.unfold("a\n "));
+        // leading break followed by whitespace is removed
+        assertEquals(" a", MimeUtility.unfold("\n a"));
+        // CRLF folds behave like single-character breaks
+        assertEquals("a b", MimeUtility.unfold("a\r\n b"));
+        assertEquals("a \r\n b", MimeUtility.unfold("a \\\r\n b"));
+    }
+
     public void doFoldTest(final int used, final String source, final String folded) throws Exception {
         final String newFolded = MimeUtility.fold(used, source);
         final String newUnfolded = MimeUtility.unfold(newFolded);
@@ -107,6 +157,20 @@ public class MimeUtilityTest {
         assertEquals(source, newUnfolded);
     }
 
+
+    @Test
+    public void testDecodeWordCaseInsensitiveEncoding() throws Exception {
+        // RFC 2047 encoding tokens are case-insensitive: lowercase b/q must decode too
+        assertEquals("If you can read this yo",
+            MimeUtility.decodeWord("=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?="));
+        assertEquals("If you can read this yo",
+            MimeUtility.decodeWord("=?ISO-8859-1?b?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?="));
+        assertEquals("André", MimeUtility.decodeWord("=?ISO-8859-1?Q?Andr=E9?="));
+        assertEquals("André", MimeUtility.decodeWord("=?ISO-8859-1?q?Andr=E9?="));
+        // decodeText passes lowercase-encoded words through decodeWord
+        assertEquals("םולש ןב ילטפנ",
+            MimeUtility.decodeText("=?iso-8859-8?b?7eXs+SDv4SDp7Oj08A==?="));
+    }
 
     @Test
     public void testEncodeWord() throws Exception {
