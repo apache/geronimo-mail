@@ -4,8 +4,10 @@ Building
 
 To build you will need:
 
- * JDK 1.8+
+ * JDK 21+ (the embedded Apache James 3.9 test servers ship Java 21 class files)
  * Maven 3.9.x
+
+The produced artifacts target Java 11, so they can be used on Java 11+ runtimes.
 
 To build all changes incrementally:
 
