@@ -20,9 +20,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import jakarta.mail.Flags;
 import jakarta.mail.Folder;
+import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.event.MessageChangedEvent;
+import jakarta.mail.event.MessageChangedListener;
 
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 import org.junit.jupiter.api.Test;
@@ -114,6 +121,44 @@ public class IMAPTckRegressionTest extends AbstractProtocolTest {
             test1.setSubscribed(true);
             final Folder[] subscribed = store.getDefaultFolder().listSubscribed("%");
             assertTrue(subscribed.length > 0, "default folder listSubscribed(\"%\") must find the subscribed folder");
+        } finally {
+            store.close();
+        }
+    }
+
+    /**
+     * event/FolderEvent#addMsgChangeList_Test: a MessageChangedListener must
+     * fire when a flag is changed through a single message (Message.setFlags).
+     * The untagged FETCH reply to the STORE command is consumed inside
+     * IMAPConnection.setFlags, so the folder must notify the listeners itself.
+     */
+    @Test
+    public void testMessageChangedListenerFiresOnSingleMessageSetFlag() throws Exception {
+        start();
+        createMailboxWithMessage("test1");
+
+        final Store store = connect();
+        try {
+            final Folder folder = store.getDefaultFolder().getFolder("test1");
+            folder.open(Folder.READ_WRITE);
+            try {
+                final CountDownLatch changed = new CountDownLatch(1);
+                folder.addMessageChangedListener(new MessageChangedListener() {
+                    public void messageChanged(final MessageChangedEvent e) {
+                        if (e.getMessageChangeType() == MessageChangedEvent.FLAGS_CHANGED) {
+                            changed.countDown();
+                        }
+                    }
+                });
+
+                final Message msg = folder.getMessage(1);
+                msg.setFlag(Flags.Flag.ANSWERED, true);
+
+                assertTrue(changed.await(10, TimeUnit.SECONDS),
+                        "a MessageChangedEvent must be delivered for a single-message setFlag");
+            } finally {
+                folder.close(false);
+            }
         } finally {
             store.close();
         }

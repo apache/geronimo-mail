@@ -199,6 +199,12 @@ public class IMAPMessage extends MimeMessage {
                 releaseConnection(connection);
             }
         }
+
+        // the untagged FETCH response to the STORE command was consumed above,
+        // so the folder never sees it as an unsolicited flag update.  Notify the
+        // listeners directly.  This is done outside the folder lock, matching the
+        // bulk Folder.setFlags() behavior.
+        ((IMAPFolder)folder).notifyMessageFlagsChanged(this);
     }
 
 

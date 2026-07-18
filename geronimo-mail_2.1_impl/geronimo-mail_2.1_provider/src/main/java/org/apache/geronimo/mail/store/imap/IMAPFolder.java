@@ -1754,6 +1754,20 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
 
 
     /**
+     * Notify the message changed listeners that the flags of a
+     * message contained in the folder have been updated.  Used by
+     * IMAPMessage.setFlags(), where the untagged FETCH reply to the
+     * STORE command is consumed by the connection, so the generic
+     * unsolicited-response handling never sees a flag update.
+     *
+     * @param m      The message whose flags were changed.
+     */
+    void notifyMessageFlagsChanged(Message m) {
+        notifyMessageChangedListeners(MessageChangedEvent.FLAGS_CHANGED, m);
+    }
+
+
+    /**
      * Retrieve the connection attached to this folder.  Throws an
      * exception if we don't have an active connection.
      *
