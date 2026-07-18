@@ -919,7 +919,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
         // see if there are new messages in the folder.
         checkMessageValidity(msgNum);
         // create the mapping key for this
-        Integer messageKey = new Integer(msgNum);
+        Integer messageKey = Integer.valueOf(msgNum);
         // ok, if the message number is within range, we should have this in the
         // messages list.  Just return the element.
         Message message = (Message)messageCache.get(messageKey);
@@ -1345,7 +1345,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
         // only allowed on open folders
         checkOpen();
 
-        Long key = new Long(uid);
+        Long key = Long.valueOf(uid);
         // first check to see if we have a cached value for this
         synchronized(messageCache) {
             Message msg = (Message)uidCache.get(key);
@@ -1402,7 +1402,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
             // fill in each of the messages based on the returned value
             for (int i = 0; i < msgs.length; i++) {
                 IMAPUid uid = (IMAPUid)uids.get(i);
-                msgs[i] = retrieveMessageByUid(new Long(uid.uid), uid.messageNumber);
+                msgs[i] = retrieveMessageByUid(Long.valueOf(uid.uid), uid.messageNumber);
             }
 
             return msgs;
@@ -1472,7 +1472,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                 return -1;
             }
             // cache this information now that we've gotten it.
-            addToUidCache(new Long(imapuid.uid), getMessage(imapuid.messageNumber));
+            addToUidCache(Long.valueOf(imapuid.uid), getMessage(imapuid.messageNumber));
             // return the UID information.
             return imapuid.uid;
         } finally {
@@ -1881,7 +1881,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
         // needs removal from there also
         long uid = ((IMAPMessage)expungedMessage).getUID();
         if (uid >= 0) {
-            uidCache.remove(new Long(uid));
+            uidCache.remove(Long.valueOf(uid));
         }
         // because we need to jigger the keys of some of these, we had better have a working
         // copy.
@@ -1905,7 +1905,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                 // message cache under the new key value
                 IMAPMessage message = (IMAPMessage)messageCache.get(key);
                 message.setSequenceNumber(index - 1);
-                newCache.put(new Integer(index - 1), message);
+                newCache.put(Integer.valueOf(index - 1), message);
             }
             else {
                 // the expunged message.  We don't move this over to the new

@@ -1225,7 +1225,7 @@ public class IMAPMessage extends MimeMessage {
                 case IMAPFetchDataItem.UID:
                     uid = ((IMAPUid)item).uid;
                     // make sure the folder knows about the UID update.
-                    ((IMAPFolder)folder).addToUidCache(new Long(uid), this);
+                    ((IMAPFolder)folder).addToUidCache(Long.valueOf(uid), this);
                     break;
                 case IMAPFetchDataItem.BODYSTRUCTURE:
                     updateBodyStructure((IMAPBodyStructure)item);

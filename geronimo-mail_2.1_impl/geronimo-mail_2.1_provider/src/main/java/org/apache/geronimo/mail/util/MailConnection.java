@@ -340,7 +340,7 @@ public class MailConnection {
         // we'll try this with potentially two different factories if we're allowed to fall back.
         boolean fallback = props.getBooleanProperty(MAIL_FACTORY_FALLBACK, false);
         int socketFactoryPort = props.getIntProperty(ssl?MAIL_SSL_FACTORY_PORT:MAIL_FACTORY_PORT, -1);
-        Integer portArg = new Integer(socketFactoryPort == -1 ? serverPort : socketFactoryPort);
+        Integer portArg = Integer.valueOf(socketFactoryPort == -1 ? serverPort : socketFactoryPort);
         
         debugOut("Creating "+(ssl?"":"non-")+"SSL socket using factory " + socketFactoryClass+ " listening on port "+portArg);
 
@@ -375,7 +375,7 @@ public class MailConnection {
                     Class[] createSocketSig = new Class[] { String.class, Integer.TYPE, InetAddress.class, Integer.TYPE };
                     Method createSocket = factoryClass.getMethod("createSocket", createSocketSig);
 
-                    Object[] createSocketArgs = new Object[] { serverHost, portArg, localAddress, new Integer(localPort) };
+                    Object[] createSocketArgs = new Object[] { serverHost, portArg, localAddress, Integer.valueOf(localPort) };
                     socket = (Socket)createSocket.invoke(defFactory, createSocketArgs);
                     break; 
                 }
@@ -385,7 +385,7 @@ public class MailConnection {
                         Class[] createSocketSig = new Class[] { Socket.class, String.class, Integer.TYPE, Boolean.TYPE };
                         Method createSocket = factoryClass.getMethod("createSocket", createSocketSig);
 
-                        Object[] createSocketArgs = new Object[] { socket, serverHost, new Integer(serverPort), Boolean.TRUE };
+                        Object[] createSocketArgs = new Object[] { socket, serverHost, Integer.valueOf(serverPort), Boolean.TRUE };
                         socket = (Socket)createSocket.invoke(defFactory, createSocketArgs);
                         break; 
                     } else {

@@ -213,7 +213,7 @@ public class NNTPGroupFolder extends NNTPFolder {
         // get an object form to look up in the retrieve messages list (oh how I
         // wish there was
         // something like Map that could use integer keys directly!).
-        Integer key = new Integer(msgNum);
+        Integer key = Integer.valueOf(msgNum);
         NNTPMessage message = (NNTPMessage) articles.get(key);
         if (message != null) {
             // piece of cake!
@@ -276,7 +276,7 @@ public class NNTPGroupFolder extends NNTPFolder {
                     int pos = line.indexOf(' ');
                     int articleID = Integer.parseInt(line.substring(0, pos));
                     String messageID = line.substring(pos + 1);
-                    Integer key = new Integer(articleID);
+                    Integer key = Integer.valueOf(articleID);
                     // see if we have this message cached, If not, create it.
                     Message message = (Message)articles.get(key);
                     if (message == null) {
