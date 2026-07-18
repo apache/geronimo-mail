@@ -22,21 +22,24 @@
 # Baseline recorded 2026-07-18 against Jakarta Mail TCK 2.1.1 / James 3.9.0.
 #
 
-# IMAP APPEND continuation deadlock: the client blocks forever waiting for the
-# server's literal continuation (see tck.adoc "KNOWN ISSUE"). Every test below
-# invokes Folder.appendMessages through the geronimo IMAP client.
-javasoft/sqe/tests/jakarta/mail/event/FolderEvent/testlist.html#addMsgCntList_Test
-javasoft/sqe/tests/jakarta/mail/exception/testlist.html#illegalWriteException_Test
-javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#appendMessages_Test
-javasoft/sqe/tests/jakarta/mail/UIDFolder/testlist.html#getUID_Test
-javasoft/sqe/tests/jakarta/mail/UIDFolder/testlist.html#getUIDNext_Test
-
 # API signature verification: needs a dedicated sigtest setup (signature
 # records, sigtest.jar invocation) and is out of scope for the functional
 # gate; currently reports 18 signature mismatches in the spec classes that
 # should be reviewed separately.
 SignatureTest.html
 
+
+# Folder.close(false) must not expunge: the client issues CLOSE, which per
+# RFC 3501 always expunges \Deleted messages; not expunging requires UNSELECT
+# (or dropping the selection another way). Surfaced once the APPEND deadlock
+# was fixed (appendMessages_Test unit 3 appends \Deleted-flagged messages and
+# expects them to survive close(false)).
+javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#appendMessages_Test
+
+# MessageCountListener events are queued to the wrong listener list in
+# jakarta.mail.Folder (notifyMessageAdded/RemovedListeners use
+# messageChangedListeners), so count listeners never fire.
+javasoft/sqe/tests/jakarta/mail/event/FolderEvent/testlist.html#addMsgCntList_Test
 
 # Remaining baseline failures (284 passed / 31 failed after the
 # IMAPFolder.renameTo fix removed a ~90-test cascade). Distinct defects:

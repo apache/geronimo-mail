@@ -7,11 +7,10 @@ JavaTest harness. Pass `-Dtck.failIgnore=false` to make TCK failures fail the
 build. The manual setup below remains as reference for interactive/GUI runs and
 for debugging individual tests.
 
-KNOWN ISSUE: populating the mailbox through the geronimo IMAP client deadlocks
-in `IMAPConnection.appendMessage` (the client blocks waiting for the server's
-literal continuation that never arrives - reproducible against Apache James 3.9).
-The tck module therefore runs `fpopulate` with the Angus RI client (fixture
-setup only). The same defect likely affects the TCK's own APPEND-related tests.
+RESOLVED (2026-07-18): IMAP APPEND used to deadlock because the client never
+flushed the literal announcement before waiting for the server's continuation
+(fixed in IMAPCommand.writeTo, along with the RFC 3501 space-padded
+INTERNALDATE day). `fpopulate` runs through the geronimo client again.
 
 # Docker CTS Mailserver setup
 

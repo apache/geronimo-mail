@@ -193,6 +193,10 @@ public class IMAPCommand {
             // on to the end.
             for (int i = 0; i < segments.size(); i++) {
                 outStream.write((byte [])segments.get(i));
+                // the segment (ending with a {n} literal announcement) must actually
+                // reach the server before we wait for its continuation response --
+                // without this flush both sides wait on each other forever.
+                outStream.flush();
                 // now wait for a response from the connection.  We should be getting a
                 // continuation response back (and might have also received some asynchronous
                 // replies, which we'll leave in the queue for now.  If we get some status back

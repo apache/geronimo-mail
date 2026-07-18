@@ -41,11 +41,11 @@ public class IMAPDateFormat extends SimpleDateFormat {
     }
     public StringBuffer format(Date date, StringBuffer buffer, FieldPosition position) {
         StringBuffer result = super.format(date, buffer, position);
-        // The RFC 2060 requires that the day in the date be formatted with either 2 digits
-        // or one digit.  Our format specifies 2 digits, which pads with leading
-        // zeros.  We need to check for this and whack it if it's there
+        // RFC 3501 date-day-fixed is (SP DIGIT) / 2DIGIT: a single-digit day must
+        // be space-padded, not shortened.  Our format pads with a leading zero,
+        // so replace that zero with the required space.
         if (result.charAt(0) == '0') {
-            result.deleteCharAt(0); 
+            result.setCharAt(0, ' ');
         }
         return result;
     }
