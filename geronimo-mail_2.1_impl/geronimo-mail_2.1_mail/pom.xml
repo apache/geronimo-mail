@@ -134,7 +134,8 @@
                             org.apache.geronimo.osgi.locator,
                             org.apache.geronimo.mail,
                             org.apache.geronimo.mail.util,
-                            org.apache.geronimo.mail.authentication
+                            org.apache.geronimo.mail.authentication,
+                            org.apache.geronimo.mail.james.mime4j*
                         </Private-Package>
                         <Export-Package>
                             jakarta.mail*;version=2.1,

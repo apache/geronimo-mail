@@ -317,6 +317,9 @@ public final class Session {
      */
     public Folder getFolder(final URLName name) throws MessagingException {
         final Store store = getStore(name);
+        // the API contract requires the returned (closed) folder to come from a
+        // connected store, using the credentials embedded in the URLName
+        store.connect();
         return store.getFolder(name);
     }
 
