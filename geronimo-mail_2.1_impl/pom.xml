@@ -160,9 +160,11 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <!-- Allow any Java >= 11 -->
+                                <!-- Building needs JDK 21+: the James 3.9 test
+                                     dependencies ship Java 21 class files.
+                                     Artifacts still target Java 11. -->
                                 <requireJavaVersion>
-                                    <version>[11,)</version>
+                                    <version>[21,)</version>
                                 </requireJavaVersion>
 
                                 <!-- Allow any Maven >= 2.0.7 -->
