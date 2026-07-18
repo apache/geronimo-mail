@@ -678,11 +678,11 @@ public abstract class Folder implements AutoCloseable {
     }
 
     protected void notifyMessageAddedListeners(final Message[] messages) {
-        queueEvent(new MessageCountEvent(this, MessageCountEvent.ADDED, false, messages), messageChangedListeners);
+        queueEvent(new MessageCountEvent(this, MessageCountEvent.ADDED, false, messages), messageCountListeners);
     }
 
     protected void notifyMessageRemovedListeners(final boolean removed, final Message[] messages) {
-        queueEvent(new MessageCountEvent(this, MessageCountEvent.REMOVED, removed, messages), messageChangedListeners);
+        queueEvent(new MessageCountEvent(this, MessageCountEvent.REMOVED, removed, messages), messageCountListeners);
     }
 
     public void addMessageChangedListener(final MessageChangedListener listener) {
