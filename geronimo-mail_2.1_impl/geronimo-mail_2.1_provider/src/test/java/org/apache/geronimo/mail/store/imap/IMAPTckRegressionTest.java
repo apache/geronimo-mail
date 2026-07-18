@@ -27,7 +27,9 @@ import jakarta.mail.Store;
 import org.apache.geronimo.mail.testserver.AbstractProtocolTest;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Regression tests for a set of IMAP provider defects surfaced by the
@@ -60,6 +62,35 @@ public class IMAPTckRegressionTest extends AbstractProtocolTest {
     protected void createMailboxWithMessage(final String name) throws Exception {
         server.createUserMailbox(name);
         server.appendToUserMailbox(name, readMessageResource("/messages/simple.msg"));
+    }
+
+    /**
+     * Folder#create_Test/delete_Test/getType_Test: a top-level folder obtained
+     * via the default folder has an UNDETERMINED separator; create() used to
+     * append the raw '\0' separator to the mailbox name on the wire
+     * ("CREATE topdog&AAA-"), so the folder was created under a mangled name
+     * and create() reported failure.  The James hierarchy delimiter is '.',
+     * not the '/' fallback, so the separator must be obtained from the server.
+     */
+    @Test
+    public void testCreateDeleteGetTypeRoundTrip() throws Exception {
+        start();
+
+        final Store store = connect();
+        try {
+            final Folder folder = store.getDefaultFolder().getFolder("topdog");
+            assertFalse(folder.exists(), "folder must not exist before creation");
+
+            assertTrue(folder.create(Folder.HOLDS_FOLDERS), "create must succeed");
+            assertTrue(folder.exists(), "created folder must exist under its own name");
+            assertTrue((folder.getType() & Folder.HOLDS_FOLDERS) != 0,
+                    "created folder must be able to hold folders");
+
+            assertTrue(folder.delete(false), "delete must succeed");
+            assertFalse(folder.exists(), "deleted folder must no longer exist");
+        } finally {
+            store.close();
+        }
     }
 
     /**

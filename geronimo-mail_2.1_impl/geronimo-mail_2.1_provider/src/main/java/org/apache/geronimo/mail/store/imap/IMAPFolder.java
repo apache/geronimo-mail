@@ -326,9 +326,19 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                 List responses = connection.list("", fullname);
                 IMAPListResponse info = findListResponse(responses, fullname);
 
-                // if we didn't get any hits, then we just assume a reasonable default.
+                // if we didn't get any hits (e.g., the folder does not exist yet),
+                // ask the server for the hierarchy delimiter directly.  RFC 3501
+                // defines the special form LIST "" "" as returning the hierarchy
+                // delimiter and the root name without matching any mailboxes.
                 if (info == null) {
-                    separator = '/';
+                    List delimiterResponses = connection.list("", "");
+                    if (!delimiterResponses.isEmpty()) {
+                        separator = ((IMAPListResponse)delimiterResponses.get(0)).separator;
+                    }
+                    // no useful answer from the server, assume a reasonable default.
+                    if (separator == '\0') {
+                        separator = '/';
+                    }
                 }
                 else {
                     separator = info.separator;
@@ -384,7 +394,11 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
             // if this folder is expected to only hold additional folders, we need to
             // add a separator on to the end when we create this.
             if ((newType & HOLDS_MESSAGES) == 0) {
-                newPath = fullname + separator;
+                // NB:  we must use getSeparator() here, not the raw field.  For folders
+                // obtained from the default folder the separator is still UNDETERMINED
+                // ('\0'), and appending that raw character would send a corrupted
+                // (modified-UTF-7 encoded) mailbox name to the server.
+                newPath = fullname + getSeparator();
             }
             try {
                 // go create this
