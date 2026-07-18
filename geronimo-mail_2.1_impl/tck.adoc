@@ -1,3 +1,18 @@
+NOTE: The TCK run described below is automated by the `geronimo-mail_2.1_tck`
+module at the repository root: `mvn verify -Ptck -pl geronimo-mail_2.1_tck`
+downloads the Jakarta Mail TCK
+2.1.1, boots an embedded Apache James server (SMTP 1025 / IMAP 1143, user
+`user01@james.local`/`1234`), populates the `test1` mailbox and executes the
+JavaTest harness. Pass `-Dtck.failIgnore=false` to make TCK failures fail the
+build. The manual setup below remains as reference for interactive/GUI runs and
+for debugging individual tests.
+
+KNOWN ISSUE: populating the mailbox through the geronimo IMAP client deadlocks
+in `IMAPConnection.appendMessage` (the client blocks waiting for the server's
+literal continuation that never arrives - reproducible against Apache James 3.9).
+The tck module therefore runs `fpopulate` with the Angus RI client (fixture
+setup only). The same defect likely affects the TCK's own APPEND-related tests.
+
 # Docker CTS Mailserver setup
 
 Create a docker-compose.yml file:

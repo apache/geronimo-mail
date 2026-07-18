@@ -91,6 +91,7 @@
     <modules>
         <module>geronimo-mail_2.1_spec</module>
         <module>geronimo-mail_2.1_impl</module>
+        <module>geronimo-mail_2.1_tck</module>
     </modules>
 
 </project>
