@@ -239,7 +239,11 @@ public class IMAPResponseStream {
      * @return An IMAPResponse instance for this message.
      */
     private IMAPResponse parseUntaggedOkResponse(byte [] data, IMAPResponseTokenizer tokenizer) throws MessagingException {
-        Token token = tokenizer.peek();
+        // NB: '[' and ']' are only delimiters in the expanded delimiter set, so all
+        // tokens of the response code section must be read in that mode.  With the
+        // default atom delimiters "[PERMANENTFLAGS" would come back as a single
+        // ATOM token and the response code would never be recognized.
+        Token token = tokenizer.peek(false, true);
         // we might have an optional value here
         if (token.getType() != '[') {
             // this has no tagging item, so there's nothing to be processed
@@ -247,8 +251,8 @@ public class IMAPResponseStream {
             return new IMAPOkResponse("OK", null, tokenizer.getRemainder(), data);
         }
         // skip over the "[" token
-        tokenizer.next();
-        token = tokenizer.next();
+        tokenizer.next(false, true);
+        token = tokenizer.next(false, true);
         String keyword = token.getValue();
 
         // Permanent flags gets special handling
@@ -259,10 +263,11 @@ public class IMAPResponseStream {
         ArrayList arguments = new ArrayList();
 
         // strip off all of the argument tokens until the "]" list terminator.
-        token = tokenizer.next();
-        while (token.getType() != ']') {
+        // guard against EOF in case the terminator is missing from the response.
+        token = tokenizer.next(false, true);
+        while (token.getType() != ']' && token.getType() != Token.EOF) {
             arguments.add(token);
-            token = tokenizer.next();
+            token = tokenizer.next(false, true);
         }
         // this has a tagged keyword and arguments that will be processed later.
         return new IMAPOkResponse(keyword, arguments, tokenizer.getRemainder(), data);

@@ -163,8 +163,8 @@ public class IMAPMailboxStatus {
             }
             // untagged unseen response
             else if (source.isKeyword("UNSEEN")) {
-                List arguments = source.getStatus(); 
-                uidValidity = ((Token)arguments.get(0)).getInteger(); 
+                List arguments = source.getStatus();
+                unseenMessages = ((Token)arguments.get(0)).getInteger();
             }
         }
     }
