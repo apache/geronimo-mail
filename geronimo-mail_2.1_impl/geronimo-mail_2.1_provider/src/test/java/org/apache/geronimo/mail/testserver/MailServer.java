@@ -52,6 +52,7 @@ import org.apache.james.imap.processor.fetch.FetchProcessor;
 import org.apache.james.imap.processor.main.DefaultImapProcessorFactory;
 import org.apache.james.imapserver.netty.IMAPServer;
 import org.apache.james.imapserver.netty.ImapMetrics;
+import org.apache.james.lifecycle.api.LifecycleUtil;
 import org.apache.james.mailbox.Authorizator;
 import org.apache.james.mailbox.MailboxManager;
 import org.apache.james.mailbox.MailboxSession;
@@ -91,6 +92,7 @@ import org.apache.james.smtpserver.netty.SmtpMetricsImpl;
 import org.apache.james.user.api.UsersRepository;
 import org.apache.james.user.api.UsersRepositoryException;
 import org.apache.james.user.memory.MemoryUsersRepository;
+import org.apache.mailet.Mail;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -191,8 +193,12 @@ public class MailServer {
     }
 
     private void deliver(final MailQueue.MailQueueItem item, final MessageManager mailbox, final MailboxSession session) {
+        // the dequeued mail (a queue-side copy backed by a MimeMessageInputStreamSource)
+        // is owned by the consumer and must be disposed, see the MailQueue contract and
+        // JamesMailSpooler for the canonical pattern
+        final Mail mail = item.getMail();
         try {
-            final MimeMessage msg = item.getMail().getMessage();
+            final MimeMessage msg = mail.getMessage();
             final ByteArrayOutputStream bout = new ByteArrayOutputStream();
             msg.writeTo(bout);
             mailbox.appendMessage(MessageManager.AppendCommand.builder().recent().build(bout.toByteArray()), session);
@@ -201,10 +207,12 @@ public class MailServer {
         } catch (final Exception e) {
             e.printStackTrace();
             try {
-                item.done(MailQueue.MailQueueItem.CompletionStatus.RETRY);
+                item.done(MailQueue.MailQueueItem.CompletionStatus.REJECT);
             } catch (final Exception ignored) {
                 // nothing left to do
             }
+        } finally {
+            LifecycleUtil.dispose(mail);
         }
     }
 
@@ -212,6 +220,10 @@ public class MailServer {
 
         if (fetcher != null) {
             fetcher.dispose();
+        }
+
+        if (queue != null) {
+            queue.close();
         }
 
         if (protocolHandlerChain != null) {
