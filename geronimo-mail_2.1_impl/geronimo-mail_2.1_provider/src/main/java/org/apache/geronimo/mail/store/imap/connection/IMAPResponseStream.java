@@ -295,8 +295,8 @@ public class IMAPResponseStream {
      * @exception IOException
      */
     public void readBuffer() throws MessagingException {
+        int ch = nextByte();
         while (true) {
-            int ch = nextByte();
             // potential end of line?  Check the next character, and if it is an end of line,
             // we need to do literal processing.
             if (ch == '\r') {
@@ -307,9 +307,17 @@ public class IMAPResponseStream {
                     checkLiteral();
                     return;
                 }
+                // a bare CR that is not part of a CRLF sequence.  The CR is part of
+                // the response data, so write it out, then reprocess the look-ahead
+                // byte on the next loop iteration (it might itself be a CR starting
+                // a real CRLF line terminator, so it must not be consumed here).
+                out.write(ch);
+                ch = next;
+                continue;
             }
             // write this to the buffer.
             out.write(ch);
+            ch = nextByte();
         }
     }
 
