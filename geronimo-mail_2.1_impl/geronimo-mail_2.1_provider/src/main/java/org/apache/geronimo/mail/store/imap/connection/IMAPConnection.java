@@ -399,7 +399,18 @@ public class IMAPConnection extends MailConnection {
     public IMAPTaggedResponse receiveResponse() throws MessagingException {
         while (true) {
             // read and parse a response from the server.
-            IMAPResponse response = reader.readResponse();
+            IMAPResponse response;
+            try {
+                response = reader.readResponse();
+            } catch (MessagingException e) {
+                // a read or parsing failure leaves the stream position somewhere in the
+                // middle of a response, so this connection can no longer be trusted to
+                // stay in sync with the server.  Close it down and mark it so it is not
+                // returned to the connection pool, then let the failure propagate.
+                setClosed();
+                closeServerConnection();
+                throw e;
+            }
             // The response set is terminated by either a continuation response or a
             // tagged response (we only have a single command active at one time).
             if (response instanceof IMAPTaggedResponse) {
