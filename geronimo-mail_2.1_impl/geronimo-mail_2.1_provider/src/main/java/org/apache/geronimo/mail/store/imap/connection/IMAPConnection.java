@@ -1359,8 +1359,12 @@ public class IMAPConnection extends MailConnection {
     public synchronized List expungeMailbox() throws MessagingException {
         // send the message, and make sure we got an OK response
         sendCommand("EXPUNGE");
-        // extract all of the expunged responses and return.
-        return extractResponses("EXPUNGED");
+        // extract all of the expunged responses and return.  The parser queues
+        // the untagged "* nn EXPUNGE" responses under the "EXPUNGE" keyword, so
+        // that is the keyword we must extract here.  Extracting them prevents the
+        // pending-response handler from processing the same expunge events a
+        // second time.
+        return extractResponses("EXPUNGE");
     }
 
     public int[] searchMailbox(SearchTerm term) throws MessagingException {
