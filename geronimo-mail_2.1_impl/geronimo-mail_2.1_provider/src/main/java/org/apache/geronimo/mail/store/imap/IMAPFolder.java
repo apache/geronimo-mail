@@ -651,6 +651,9 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
             // record our open mode
             this.mode = mode;
 
+            // tracks whether SELECT/EXAMINE succeeded, so the failure unwind knows
+            // if the connection still has a mailbox attached
+            boolean mailboxSelected = false;
 
             try {
                 IMAPMailboxStatus status;
@@ -675,6 +678,7 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                     }
                     throw e;
                 }
+                mailboxSelected = true;
 
                 // not available in the requested mode?
                 if (status.mode != mode) {
@@ -729,8 +733,19 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                         } catch (MessagingException e) {
                             // ignore...we're already on a failure path here.
                         }
-                        conn.removeResponseHandler(this);
+                        if (mailboxSelected) {
+                            try {
+                                // the SELECT/EXAMINE itself succeeded (e.g. the
+                                // ReadOnlyFolderException path), so the mailbox is still
+                                // selected; deselect so the connection goes back to the
+                                // pool without a live mailbox attached.
+                                conn.closeMailbox();
+                            } catch (MessagingException e) {
+                                // ignore...we're already on a failure path here.
+                            }
+                        }
                         try {
+                            conn.removeResponseHandler(this);
                             ((IMAPStore)store).releaseFolderConnection(this, conn);
                         } catch (MessagingException e) {
                             // ignore...we're already on a failure path here.
