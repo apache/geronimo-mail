@@ -737,15 +737,23 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                 // The CLOSE operation depends on what mode was used to select the mailbox.
                 // If we're open in READ-WRITE mode, we used a SELECT operation.  When CLOSE
                 // is issued, any deleted messages will be expunged.  If we've been asked not
-                // to expunge the messages, we have a problem.  The solution is to reselect the
-                // mailbox using EXAMINE, which will not expunge messages when closed.
-                if (mode == READ_WRITE && !expunge) {
-                    // we can ignore the result...we're just switching modes.
-                    currentConnection.openMailbox(fullname, true);
+                // to expunge the messages, we have a problem.  If the server supports the
+                // UNSELECT extension (RFC 3691), that deselects the mailbox without an
+                // implicit expunge.  Otherwise we fall back to reselecting the mailbox
+                // using EXAMINE before issuing CLOSE.  NB:  the fallback is not reliable
+                // on all servers (e.g., Apache James expunges on CLOSE even after EXAMINE).
+                if (mode == READ_WRITE && !expunge && currentConnection.hasCapability("UNSELECT")) {
+                    currentConnection.unselectMailbox();
                 }
+                else {
+                    if (mode == READ_WRITE && !expunge) {
+                        // we can ignore the result...we're just switching modes.
+                        currentConnection.openMailbox(fullname, true);
+                    }
 
-                // have this close the selected mailbox
-                currentConnection.closeMailbox();
+                    // have this close the selected mailbox
+                    currentConnection.closeMailbox();
+                }
             }
             currentConnection.removeResponseHandler(this);
             // we need to release the connection to the Store once we're closed

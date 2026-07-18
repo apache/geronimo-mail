@@ -165,6 +165,41 @@ public class IMAPTckRegressionTest extends AbstractProtocolTest {
     }
 
     /**
+     * Folder#appendMessages_Test (unit 3): close(false) must not expunge
+     * messages flagged \Deleted.  The EXAMINE+CLOSE trick used for
+     * close-without-expunge does not work on James (it expunges on CLOSE
+     * anyway); the server advertises UNSELECT which must be used instead.
+     */
+    @Test
+    public void testCloseWithoutExpungeKeepsDeletedMessages() throws Exception {
+        start();
+        createMailboxWithMessage("test1");
+        server.appendToUserMailbox("test1", readMessageResource("/messages/simple.msg"));
+
+        final Store store = connect();
+        try {
+            final Folder folder = store.getDefaultFolder().getFolder("test1");
+            folder.open(Folder.READ_WRITE);
+            assertTrue(folder.getMessageCount() == 2, "test setup must provide two messages");
+            folder.getMessage(1).setFlag(Flags.Flag.DELETED, true);
+            folder.close(false);
+
+            final Folder reopened = store.getDefaultFolder().getFolder("test1");
+            reopened.open(Folder.READ_ONLY);
+            try {
+                assertTrue(reopened.getMessageCount() == 2,
+                        "close(false) must not expunge messages flagged \\Deleted");
+                assertTrue(reopened.getMessage(1).isSet(Flags.Flag.DELETED),
+                        "the \\Deleted flag must survive close(false)");
+            } finally {
+                reopened.close(false);
+            }
+        } finally {
+            store.close();
+        }
+    }
+
+    /**
      * MimeMessage#getContentLanguage_Test: a message whose BODYSTRUCTURE
      * carries no language information used to trigger a NullPointerException;
      * the spec requires a null return instead.

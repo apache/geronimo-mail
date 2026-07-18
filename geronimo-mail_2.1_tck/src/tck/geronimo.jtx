@@ -29,13 +29,6 @@
 SignatureTest.html
 
 
-# Folder.close(false) must not expunge: the client issues CLOSE, which per
-# RFC 3501 always expunges \Deleted messages; not expunging requires UNSELECT
-# (or dropping the selection another way). Surfaced once the APPEND deadlock
-# was fixed (appendMessages_Test unit 3 appends \Deleted-flagged messages and
-# expects them to survive close(false)).
-javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#appendMessages_Test
-
 # Remaining baseline failures (284 passed / 31 failed after the
 # IMAPFolder.renameTo fix removed a ~90-test cascade). Distinct defects:
 # folder create/delete (topdog), permanent flags, list/listSubscribed,

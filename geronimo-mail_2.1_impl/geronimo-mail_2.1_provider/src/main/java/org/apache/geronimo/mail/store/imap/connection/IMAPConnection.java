@@ -460,6 +460,20 @@ public class IMAPConnection extends MailConnection {
 
 
     /**
+     * Deselect a mailbox without expunging any messages flagged
+     * \Deleted (RFC 3691).  Only usable when the server advertises
+     * the UNSELECT capability.
+     *
+     * @exception MessagingException
+     */
+    public void unselectMailbox() throws MessagingException {
+        // We can just send the command and generally ignore the
+        // status response.
+        sendCommand("UNSELECT");
+    }
+
+
+    /**
      * Authenticate with the server, if necessary (or possible).
      *
      * @return true if we were able to authenticate correctly, false for authentication failures.
