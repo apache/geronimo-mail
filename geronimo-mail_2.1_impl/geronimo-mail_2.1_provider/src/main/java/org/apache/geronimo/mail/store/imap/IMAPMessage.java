@@ -550,7 +550,8 @@ public class IMAPMessage extends MimeMessage {
     public String[] getContentLanguage() throws MessagingException {
         loadBodyStructure();
 
-        if (!bodyStructure.languages.isEmpty()) {
+        // the BODYSTRUCTURE response may not have included any language information at all
+        if (bodyStructure.languages != null && !bodyStructure.languages.isEmpty()) {
             return (String[])bodyStructure.languages.toArray(new String[bodyStructure.languages.size()]);
         }
         return null;

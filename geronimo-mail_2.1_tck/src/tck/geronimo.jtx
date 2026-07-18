@@ -54,7 +54,6 @@ javasoft/sqe/tests/jakarta/mail/internet/MimeBodyPart/testlist.html#attachFile_s
 javasoft/sqe/tests/jakarta/mail/internet/MimeBodyPart/testlist.html#isMimeType_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeBodyPart/testlist.html#setContentLanguage_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeBodyPart/testlist.html#setFileNameEncoded_Test
-javasoft/sqe/tests/jakarta/mail/internet/MimeMessage/testlist.html#getContentLanguage_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeMessage/testlist.html#setFileNameEncoded_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeMessage/testlist.html#setSentDate_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeMessage/testlist.html#unicode_Test
