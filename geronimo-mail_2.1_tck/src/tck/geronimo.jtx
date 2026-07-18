@@ -22,12 +22,6 @@
 # Baseline recorded 2026-07-18 against Jakarta Mail TCK 2.1.1 / James 3.9.0.
 #
 
-# API signature verification: needs a dedicated sigtest setup (signature
-# records, sigtest.jar invocation) and is out of scope for the functional
-# gate; currently reports 18 signature mismatches in the spec classes that
-# should be reviewed separately.
-SignatureTest.html
-
 
 # Remaining baseline failures (284 passed / 31 failed after the
 # IMAPFolder.renameTo fix removed a ~90-test cascade). Distinct defects:

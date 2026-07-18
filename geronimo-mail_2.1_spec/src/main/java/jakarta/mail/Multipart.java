@@ -23,12 +23,23 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Vector;
 
+import jakarta.mail.util.StreamProvider;
+
 /**
  * A container for multiple {@link BodyPart BodyParts}.
  *
  * @version $Rev$ $Date$
  */
 public abstract class Multipart {
+
+    /**
+     * The stream provider this part uses for its encoder, decoder and
+     * line-oriented streams, resolved once at construction time.
+     *
+     * @since JavaMail 2.1
+     */
+    protected final StreamProvider streamProvider = StreamProvider.provider();
+
     /**
      * Vector of sub-parts.
      */

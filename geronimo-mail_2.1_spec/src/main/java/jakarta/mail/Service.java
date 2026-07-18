@@ -40,7 +40,7 @@ public abstract class Service implements AutoCloseable {
     /**
      * The URLName of this service
      */
-    protected URLName url;
+    protected volatile URLName url;
     /**
      * Debug flag for this service, set from the Session's debug flag.
      */

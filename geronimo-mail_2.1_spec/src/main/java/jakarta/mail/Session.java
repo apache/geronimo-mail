@@ -40,6 +40,8 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
 
+import jakarta.mail.util.StreamProvider;
+
 import org.apache.geronimo.mail.MailProviderRegistry;
 import org.apache.geronimo.osgi.locator.ProviderLocator;
 
@@ -65,6 +67,7 @@ public final class Session {
 
     private final Properties properties;
     private final Authenticator authenticator;
+    private final StreamProvider streamProvider;
     private boolean debug;
     private PrintStream debugOut = System.out;
 
@@ -76,7 +79,20 @@ public final class Session {
     private Session(final Properties properties, final Authenticator authenticator) {
         this.properties = properties;
         this.authenticator = authenticator;
+        this.streamProvider = StreamProvider.provider();
         debug = Boolean.valueOf(properties.getProperty("mail.debug")).booleanValue();
+    }
+
+    /**
+     * Returns the stream provider this session resolved at creation time,
+     * giving access to the encoder, decoder and line-oriented streams of
+     * the underlying implementation.
+     *
+     * @return the session's stream provider
+     * @since JavaMail 2.1
+     */
+    public StreamProvider getStreamProvider() {
+        return streamProvider;
     }
 
     /**

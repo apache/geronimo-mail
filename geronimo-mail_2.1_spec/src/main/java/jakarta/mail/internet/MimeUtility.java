@@ -20,6 +20,7 @@
 package jakarta.mail.internet;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1328,6 +1329,53 @@ public class MimeUtility {
 
     static final boolean nonascii (int a){
         return a >= 0177 || (a < 040 && a != '\r' && a != '\n' && a != '\t');
+    }
+
+    /**
+     * Convert a string to a byte array by taking the low-order 8 bits of
+     * each character.  The string is expected to contain only US-ASCII
+     * characters.
+     *
+     * @param s the string to convert
+     * @return the byte representation of the string
+     * @since JavaMail 2.1
+     */
+    public static byte[] getBytes(final String s) {
+        final char[] chars = s.toCharArray();
+        final int size = chars.length;
+        final byte[] bytes = new byte[size];
+
+        for (int i = 0; i < size; i++) {
+            bytes[i] = (byte) chars[i];
+        }
+        return bytes;
+    }
+
+    /**
+     * Read all of the data from the given InputStream into a byte array.
+     *
+     * @param is the InputStream to read
+     * @return a byte array containing the fully read data
+     * @exception IOException for errors reading the stream
+     * @since JavaMail 2.1
+     */
+    public static byte[] getBytes(final InputStream is) throws IOException {
+        int len;
+        int size = 1024;
+        byte[] buf;
+        if (is instanceof ByteArrayInputStream) {
+            size = is.available();
+            buf = new byte[size];
+            len = is.read(buf, 0, size);
+        } else {
+            final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            buf = new byte[size];
+            while ((len = is.read(buf, 0, size)) != -1) {
+                bos.write(buf, 0, len);
+            }
+            buf = bos.toByteArray();
+        }
+        return buf;
     }
 }
 
