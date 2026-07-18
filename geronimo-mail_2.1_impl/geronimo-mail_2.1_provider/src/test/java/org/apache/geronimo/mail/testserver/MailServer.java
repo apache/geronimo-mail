@@ -314,6 +314,27 @@ public class MailServer {
     }
 
     /**
+     * Creates (if necessary) a top-level mailbox with the given name for the test user
+     * (i.e. a sibling of INBOX, like the "test1" folder used by the Jakarta Mail TCK).
+     */
+    public void createUserMailbox(final String name) throws Exception {
+        final MailboxSession session = mailboxManager.createSystemSession(Username.of(USER));
+        final MailboxPath path = MailboxPath.forUser(Username.of(USER), name);
+        if (!Mono.from(mailboxManager.mailboxExists(path, session)).block()) {
+            mailboxManager.createMailbox(path, session);
+        }
+    }
+
+    /**
+     * Appends a raw rfc822 message to the given top-level mailbox of the test user.
+     */
+    public void appendToUserMailbox(final String name, final byte[] content) throws Exception {
+        final MailboxSession session = mailboxManager.createSystemSession(Username.of(USER));
+        final MessageManager mb = mailboxManager.getMailbox(MailboxPath.forUser(Username.of(USER), name), session);
+        mb.appendMessage(MessageManager.AppendCommand.builder().recent().build(content), session);
+    }
+
+    /**
      * @return the queue
      */
     public MailQueue getQueue() {

@@ -587,12 +587,15 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
 
         IMAPConnection connection = getConnection();
         try {
-            // delete this one now.
+            // rename this one now.
             connection.renameMailbox(fullname, f.getFullName());
-            // we renamed, so get a fresh set of status
-            refreshStatus(false);
+            // a folder with our old name no longer exists on the server, so
+            // any cached state is stale now.  Do NOT query the server using the
+            // old name (e.g. via refreshStatus()) -- that would fail.
+            cachedStatus = null;
+            listInfo = null;
 
-            // notify interested parties about the deletion.
+            // notify interested parties about the rename.
             notifyFolderRenamedListeners(f);
             return true;
         } catch (MessagingException e) {
