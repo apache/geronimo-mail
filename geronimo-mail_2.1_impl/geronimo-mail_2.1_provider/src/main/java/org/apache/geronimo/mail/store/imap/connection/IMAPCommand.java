@@ -1407,12 +1407,17 @@ public class IMAPCommand {
             // have an actual list to retrieve?  need to craft this as a sublist
             // of identified fields.
             if (headers.length > 0) {
-                appendAtom("BODY.PEEK[HEADER.FIELDS]");
-                startList();
+                // per RFC 3501, the list of header fields belongs inside the
+                // section brackets:  BODY.PEEK[HEADER.FIELDS (h1 h2 ...)]
+                StringBuilder buff = new StringBuilder("BODY.PEEK[HEADER.FIELDS (");
                 for (int i = 0; i < headers.length; i++) {
-                    appendAtom(headers[i]);
+                    if (i > 0) {
+                        buff.append(' ');
+                    }
+                    buff.append(headers[i]);
                 }
-                endList();
+                buff.append(")]");
+                appendAtom(buff.toString());
             }
         }
         // end the list.
