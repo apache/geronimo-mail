@@ -482,6 +482,10 @@ public class IMAPStore extends Store implements QuotaAwareStore, IMAPUntaggedRes
                 try {
                     folder.close(false);
                 } catch (MessagingException e) {
+                } catch (IllegalStateException e) {
+                    // the folder was never successfully opened (or was already
+                    // closed).  Store.close() must never be aborted by a single
+                    // folder in a bad state.
                 }
             }
         }

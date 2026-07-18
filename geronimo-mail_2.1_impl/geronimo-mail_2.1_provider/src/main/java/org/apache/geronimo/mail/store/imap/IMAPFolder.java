@@ -35,6 +35,7 @@ import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.SearchTerm;
 
 import org.apache.geronimo.mail.store.imap.connection.*;
+import org.apache.geronimo.mail.util.CommandFailedException;
 
 /**
  * The base IMAP implementation of the javax.mail.Folder
@@ -652,8 +653,28 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
 
 
             try {
-                // try to open, which gives us a lot of initial mailbox state.
-                IMAPMailboxStatus status = currentConnection.openMailbox(fullname, mode == Folder.READ_ONLY);
+                IMAPMailboxStatus status;
+                try {
+                    // try to open, which gives us a lot of initial mailbox state.
+                    status = currentConnection.openMailbox(fullname, mode == Folder.READ_ONLY);
+                } catch (CommandFailedException e) {
+                    // The SELECT/EXAMINE was answered with a tagged NO.  The most likely
+                    // reason is that the mailbox does not exist (or is not selectable),
+                    // which the spec requires us to report as a FolderNotFoundException.
+                    // Verify via a LIST on the same connection.
+                    listInfo = null;
+                    boolean missing;
+                    try {
+                        missing = !checkExistance(currentConnection);
+                    } catch (MessagingException e2) {
+                        // can't tell...report the original failure below.
+                        missing = false;
+                    }
+                    if (missing) {
+                        throw new FolderNotFoundException(this, "Folder " + fullname + " not found on server");
+                    }
+                    throw e;
+                }
 
                 // not available in the requested mode?
                 if (status.mode != mode) {
@@ -686,9 +707,36 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
                 folderOpen = true;
                 notifyConnectionListeners(ConnectionEvent.OPENED);
             } finally {
-                // NB:  this doesn't really release this, but it does drive
-                // the processing of any unsolicited responses.
-                releaseConnection(currentConnection);
+                if (folderOpen) {
+                    // NB:  this doesn't really release this, but it does drive
+                    // the processing of any unsolicited responses.
+                    releaseConnection(currentConnection);
+                }
+                else {
+                    // The open failed.  The folder was registered with the Store and the
+                    // connection reserved before the SELECT/EXAMINE was attempted, so we
+                    // must fully unwind here:  drain any pending unsolicited responses,
+                    // deregister as a response handler, and return the connection to the
+                    // pool (which also removes us from the Store's open-folder list).
+                    // Failing to do so leaks the pooled connection and leaves the Store
+                    // thinking this folder is open, so a later Store.close() would call
+                    // Folder.close() on a closed folder and die with IllegalStateException.
+                    IMAPConnection conn = currentConnection;
+                    currentConnection = null;
+                    if (conn != null) {
+                        try {
+                            conn.processPendingResponses();
+                        } catch (MessagingException e) {
+                            // ignore...we're already on a failure path here.
+                        }
+                        conn.removeResponseHandler(this);
+                        try {
+                            ((IMAPStore)store).releaseFolderConnection(this, conn);
+                        } catch (MessagingException e) {
+                            // ignore...we're already on a failure path here.
+                        }
+                    }
+                }
             }
         }
 	}

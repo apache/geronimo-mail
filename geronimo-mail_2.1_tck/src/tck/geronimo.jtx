@@ -33,7 +33,6 @@ SignatureTest.html
 # IMAPFolder.renameTo fix removed a ~90-test cascade). Distinct defects:
 # folder create/delete (topdog), permanent flags, list/listSubscribed,
 # several MIME encoding/decoding and unicode behaviours.
-javasoft/sqe/tests/jakarta/mail/exception/testlist.html#folderNotFoundExp_Test
 javasoft/sqe/tests/jakarta/mail/exception/testlist.html#msgRemoveExp_Test
 javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#getPermanentFlags_Test
 javasoft/sqe/tests/jakarta/mail/internet/InternetAddress/testlist.html#unicode_Test

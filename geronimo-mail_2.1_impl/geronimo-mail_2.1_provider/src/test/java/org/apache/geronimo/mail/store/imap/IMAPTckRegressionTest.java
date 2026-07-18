@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.mail.Flags;
 import jakarta.mail.Folder;
+import jakarta.mail.FolderNotFoundException;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -195,6 +197,37 @@ public class IMAPTckRegressionTest extends AbstractProtocolTest {
                 reopened.close(false);
             }
         } finally {
+            store.close();
+        }
+    }
+
+    /**
+     * exception#folderNotFoundExp_Test: opening a nonexistent folder must throw
+     * FolderNotFoundException (not the raw CommandFailedException of the failed
+     * SELECT/EXAMINE).  In addition, the failed open used to leave the folder
+     * registered as open in the Store and leak the pooled connection, so a
+     * subsequent Store.close() blew up with an IllegalStateException.
+     */
+    @Test
+    public void testOpenNonexistentFolderThrowsFolderNotFoundAndStoreStillCloses() throws Exception {
+        start();
+
+        final Store store = connect();
+        try {
+            final Folder folder = store.getDefaultFolder().getFolder("noSuchFolder");
+            assertThrows(FolderNotFoundException.class, () -> folder.open(Folder.READ_ONLY),
+                    "opening a nonexistent folder must throw FolderNotFoundException");
+            assertFalse(folder.isOpen(), "the folder must not claim to be open after a failed open");
+
+            // a folder that really exists must still be openable afterwards,
+            // proving the pooled connection was returned in a usable state
+            createMailboxWithMessage("test1");
+            final Folder good = store.getDefaultFolder().getFolder("test1");
+            good.open(Folder.READ_ONLY);
+            assertTrue(good.getMessageCount() == 1);
+            good.close(false);
+        } finally {
+            // must not throw IllegalStateException because of the failed open
             store.close();
         }
     }
