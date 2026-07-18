@@ -1594,8 +1594,12 @@ public class IMAPFolder extends Folder implements UIDFolder, IMAPUntaggedRespons
      */
     protected synchronized Folder[] filterFolders(String pattern, boolean subscribed) throws MessagingException {
         IMAPConnection connection = getConnection();
-        // this is used to filter out our own folder from the search
-        String root = fullname + getSeparator();
+        // this is used to filter out our own folder from the search.
+        // NB:  for the root (default) folder the fullname is empty and the
+        // reference must be the empty string as well.  Using the hard-coded
+        // root separator (e.g. "/") as the reference does not match anything
+        // on servers using a different hierarchy delimiter (James uses '.').
+        String root = fullname.length() == 0 ? "" : fullname + getSeparator();
 
         List responses = null;
         try {

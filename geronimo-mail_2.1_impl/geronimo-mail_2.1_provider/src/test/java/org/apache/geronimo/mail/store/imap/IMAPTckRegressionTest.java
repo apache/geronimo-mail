@@ -94,6 +94,32 @@ public class IMAPTckRegressionTest extends AbstractProtocolTest {
     }
 
     /**
+     * Folder#list_Test/listSubscribed_Test: listing the default folder used to
+     * issue LIST / "%" (the hard-coded root separator as reference), which
+     * matches nothing on servers with a '.' hierarchy delimiter such as James.
+     * The reference for the root folder must be the empty string.
+     */
+    @Test
+    public void testDefaultFolderListIsNonEmpty() throws Exception {
+        start();
+        createMailboxWithMessage("test1");
+
+        final Store store = connect();
+        try {
+            final Folder[] folders = store.getDefaultFolder().list("%");
+            assertTrue(folders.length > 0, "default folder list(\"%\") must return at least INBOX");
+
+            // also exercise the LSUB flavour of the same code path
+            final Folder test1 = store.getDefaultFolder().getFolder("test1");
+            test1.setSubscribed(true);
+            final Folder[] subscribed = store.getDefaultFolder().listSubscribed("%");
+            assertTrue(subscribed.length > 0, "default folder listSubscribed(\"%\") must find the subscribed folder");
+        } finally {
+            store.close();
+        }
+    }
+
+    /**
      * MimeMessage#getContentLanguage_Test: a message whose BODYSTRUCTURE
      * carries no language information used to trigger a NullPointerException;
      * the spec requires a null return instead.

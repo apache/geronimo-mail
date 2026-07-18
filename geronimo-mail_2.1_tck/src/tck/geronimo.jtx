@@ -44,8 +44,6 @@ javasoft/sqe/tests/jakarta/mail/event/FolderEvent/testlist.html#addMsgChangeList
 javasoft/sqe/tests/jakarta/mail/exception/testlist.html#folderNotFoundExp_Test
 javasoft/sqe/tests/jakarta/mail/exception/testlist.html#msgRemoveExp_Test
 javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#getPermanentFlags_Test
-javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#list_Test
-javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#listSubscribed_Test
 javasoft/sqe/tests/jakarta/mail/internet/InternetAddress/testlist.html#unicode_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeBodyPart/testlist.html#attachFile_saveFile_Test
 javasoft/sqe/tests/jakarta/mail/internet/MimeBodyPart/testlist.html#isMimeType_Test
