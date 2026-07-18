@@ -236,4 +236,45 @@ public class FlagsTest {
         assertEquals(1, f.getUserFlags().length);
         assertEquals("TEST", f.getUserFlags()[0]);
     }
+
+    @Test
+    public void testRetainAllNeverAddsFlags() {
+        Flags f = new Flags();
+        f.add(Flags.Flag.SEEN);
+
+        Flags retain = new Flags();
+        retain.add(Flags.Flag.SEEN);
+        retain.add(Flags.Flag.DELETED);
+        retain.add("EXTRA");
+
+        // retaining is an intersection: flags only present in the argument
+        // must not appear, and nothing changes here
+        assertFalse(f.retainAll(retain));
+
+        assertEquals(1, f.getSystemFlags().length);
+        assertEquals(Flags.Flag.SEEN, f.getSystemFlags()[0]);
+        assertEquals(0, f.getUserFlags().length);
+    }
+
+    @Test
+    public void testRetainAllWithUserFlagKeepsUserFlags() {
+        Flags f = new Flags();
+        f.add(Flags.Flag.SEEN);
+        f.add(Flags.Flag.DELETED);
+        f.add("ONE");
+        f.add("TWO");
+
+        // an argument carrying Flags.Flag.USER retains all user flags
+        Flags retain = new Flags();
+        retain.add(Flags.Flag.SEEN);
+        retain.add(Flags.Flag.USER);
+
+        assertTrue(f.retainAll(retain));
+
+        assertEquals(1, f.getSystemFlags().length);
+        assertEquals(Flags.Flag.SEEN, f.getSystemFlags()[0]);
+        assertEquals(2, f.getUserFlags().length);
+        assertTrue(Arrays.asList(f.getUserFlags()).contains("ONE"));
+        assertTrue(Arrays.asList(f.getUserFlags()).contains("TWO"));
+    }
 }

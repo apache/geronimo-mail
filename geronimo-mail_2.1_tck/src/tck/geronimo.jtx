@@ -45,7 +45,6 @@ javasoft/sqe/tests/jakarta/mail/exception/testlist.html#folderNotFoundExp_Test
 javasoft/sqe/tests/jakarta/mail/exception/testlist.html#msgRemoveExp_Test
 javasoft/sqe/tests/jakarta/mail/FetchProfile/testlist.html#add_Test
 javasoft/sqe/tests/jakarta/mail/FetchProfile/testlist.html#contains_Test
-javasoft/sqe/tests/jakarta/mail/Flags/testlist.html#retainAll_Test
 javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#create_Test
 javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#delete_Test
 javasoft/sqe/tests/jakarta/mail/Folder/testlist.html#fetch_Test

@@ -311,16 +311,23 @@ public class Flags implements Cloneable, Serializable {
     public boolean retainAll(Flags f) {
         boolean changed = false;
 
-        if (this.system_flags != f.system_flags) {
-            this.system_flags = f.system_flags;
+        // retain only the system flags both sets carry -- an intersection,
+        // never an assignment (that could add flags we did not have)
+        final int retained = this.system_flags & f.system_flags;
+        if (this.system_flags != retained) {
+            this.system_flags = retained;
             changed = true;
         }
 
-        final Set<String> keys = new HashSet<>(this.user_flags.keySet());
-        for (final String user_flag : keys) {
-            if (! f.user_flags.containsKey(user_flag)) {
-                this.user_flags.remove(user_flag);
-                changed = true;
+        // if the argument carries the special USER flag, all user flags are
+        // retained regardless of the argument's individual user flags
+        if ((f.system_flags & Flag.USER.mask) == 0) {
+            final Set<String> keys = new HashSet<>(this.user_flags.keySet());
+            for (final String user_flag : keys) {
+                if (! f.user_flags.containsKey(user_flag)) {
+                    this.user_flags.remove(user_flag);
+                    changed = true;
+                }
             }
         }
 
