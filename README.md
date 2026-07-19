@@ -1,3 +1,14 @@
+# Apache Geronimo Mail
+
+![Maven Central](https://img.shields.io/maven-central/v/org.apache.geronimo.mail/geronimo-mail_2.1_mail)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status](https://github.com/apache/geronimo-mail/actions/workflows/ci.yml/badge.svg)](https://github.com/apache/geronimo-mail/actions/workflows/ci.yml)
+[![Jakarta Mail TCK](https://github.com/apache/geronimo-mail/actions/workflows/tck.yml/badge.svg)](https://github.com/apache/geronimo-mail/actions/workflows/tck.yml)
+
+Apache Geronimo Mail - Apache's implementation of the
+[Jakarta Mail 2.1](https://jakarta.ee/specifications/mail/2.1/) specification
+(Jakarta EE 10). It passes the Jakarta Mail 2.1 TCK. The artifacts run on
+Java 11+ (building requires JDK 21, see below).
 
 Building
 ========
@@ -18,6 +29,56 @@ source tree:
 
     mvn clean install
 
+Modules
+========
+
+ * `geronimo-mail_2.1_spec` - the Jakarta Mail 2.1 API classes
+   (`org.apache.geronimo.specs:geronimo-mail_2.1_spec`)
+ * `geronimo-mail_2.1_impl/geronimo-mail_2.1_provider` - the SMTP/IMAP/POP3/NNTP
+   protocol providers
+ * `geronimo-mail_2.1_impl/geronimo-mail_2.1_mail` - the merged all-in-one
+   bundle most consumers want
+   (`org.apache.geronimo.mail:geronimo-mail_2.1_mail`)
+ * `geronimo-mail_2.1_tck` - runs the Jakarta Mail TCK (see below); inactive
+   in normal builds
+
+Jakarta Mail TCK
+========
+
+The implementation passes the Jakarta Mail 2.1 TCK (321/321). To run it
+locally (JDK 21 required - the TCK harness does not work on JDK 24+):
+
+    mvn clean install
+    mvn verify -Ptck -pl geronimo-mail_2.1_tck
+
+The profile downloads the TCK from download.eclipse.org, boots an embedded
+Apache James server and fails the build on any test failure. A nightly GitHub
+Actions workflow (`tck.yml`) runs the same thing. Known issue: Apache James
+3.9 has a response write race that can make exactly one fetch test per run
+fail with `Unknown server response: )` - re-run in that case. Details and
+manual/debugging instructions: `geronimo-mail_2.1_impl/tck.adoc`.
+
+Releasing
+========
+
+See `RELEASE.md`.
+
+
+Lenient header parameter parsing
+========
+
+By default, parameter values in structured headers such as `Content-Type` and
+`Content-Disposition` must be quoted when they contain whitespace or special
+characters, as the MIME specification requires. Some real-world senders emit
+unquoted values (e.g. `Content-Type: multipart/related; type=text/html;
+boundary=...`), which then fail to parse. Setting the System property
+
+```
+mail.mime.parameters.strict=false
+```
+
+makes reading tolerant: an unquoted parameter value then simply ends at the
+next semicolon. The default is `true` (strict).
 
 SSL/TLS Protocols used for Mail Connection
 ========
