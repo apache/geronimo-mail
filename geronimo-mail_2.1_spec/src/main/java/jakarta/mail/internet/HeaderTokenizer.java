@@ -406,7 +406,11 @@ public class HeaderTokenizer {
             }
         }
 
-        if (i <= 0) {
+        // i is the index of the last non-whitespace character, or -1 when the
+        // string is empty or all whitespace.  Note that index 0 may well hold a
+        // real character (a one character token), so only a negative index means
+        // there is nothing left.
+        if (i < 0) {
             return "";
 
         } else {

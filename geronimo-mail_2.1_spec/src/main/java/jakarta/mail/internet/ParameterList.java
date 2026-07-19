@@ -64,6 +64,7 @@ public class ParameterList {
     private static final String MIME_ENCODEPARAMETERS = "mail.mime.encodeparameters";
     private static final String MIME_DECODEPARAMETERS = "mail.mime.decodeparameters";
     private static final String MIME_DECODEPARAMETERS_STRICT = "mail.mime.decodeparameters.strict";
+    private static final String MIME_PARAMETERS_STRICT = "mail.mime.parameters.strict";
 
     private static final int HEADER_SIZE_LIMIT = 76;
 
@@ -115,6 +116,7 @@ public class ParameterList {
     private boolean encodeParameters = false;
     private boolean decodeParameters = false;
     private boolean decodeParametersStrict = false;
+    private boolean parametersStrict = true;
 
     public ParameterList() {
         // figure out how parameter handling is to be performed.
@@ -126,13 +128,20 @@ public class ParameterList {
         getInitialProperties();
         // get a token parser for the type information
         final HeaderTokenizer tokenizer = new HeaderTokenizer(list, HeaderTokenizer.MIME);
+        // In lenient mode ("mail.mime.parameters.strict" set to false), reading an
+        // unquoted value that contains special characters swallows the ';' that
+        // terminates the value.  This flag remembers that so the next loop pass
+        // does not insist on seeing another ';' before the following parameter name.
+        boolean separatorConsumed = false;
         while (true) {
             HeaderTokenizer.Token token = tokenizer.next();
 
             if (token.getType() == HeaderTokenizer.Token.EOF) {
                 // the EOF token terminates parsing.
                 break;
-            } else if (token.getType() == ';') {
+            }
+
+            if (token.getType() == ';') {
                 // each new parameter is separated by a semicolon, including the
                 // first, which separates
                 // the parameters from the main part of the header.
@@ -143,65 +152,88 @@ public class ParameterList {
                 if (token.getType() == HeaderTokenizer.Token.EOF) {
                     break;
                 }
+            } else if (!(separatorConsumed && token.getType() == HeaderTokenizer.Token.ATOM)) {
+                // in lenient mode the previous value scan may have consumed the
+                // separator already, in which case this token is the next parameter
+                // name.  In every other situation a missing semicolon is an error.
+                throw new ParseException("Missing ';'");
+            }
+            separatorConsumed = false;
 
-                if (token.getType() != HeaderTokenizer.Token.ATOM) {
-                    throw new ParseException("Invalid parameter name: " + token.getValue());
-                }
+            if (token.getType() != HeaderTokenizer.Token.ATOM) {
+                throw new ParseException("Invalid parameter name: " + token.getValue());
+            }
 
-                // get the parameter name as a lower case version for better
-                // mapping.
-                String name = token.getValue().toLowerCase();
+            // get the parameter name as a lower case version for better
+            // mapping.
+            String name = token.getValue().toLowerCase();
 
-                token = tokenizer.next();
+            token = tokenizer.next();
 
-                // parameters are name=value, so we must have the "=" here.
-                if (token.getType() != '=') {
-                    throw new ParseException("Missing '='");
-                }
+            // parameters are name=value, so we must have the "=" here.
+            if (token.getType() != '=') {
+                throw new ParseException("Missing '='");
+            }
 
-                // now the value, which may be an atom or a literal
+            // now the value, which may be an atom or a literal
+            final String value;
+            if (parametersStrict) {
                 token = tokenizer.next();
 
                 if (token.getType() != HeaderTokenizer.Token.ATOM && token.getType() != HeaderTokenizer.Token.QUOTEDSTRING) {
                     throw new ParseException("Invalid parameter value: " + token.getValue());
                 }
-
-                final String value = token.getValue();
-                String decodedValue = null;
-
-                // we might have to do some additional decoding. A name that
-                // ends with "*"
-                // is marked as being encoded, so if requested, we decode the
-                // value.
-                if (decodeParameters && name.endsWith("*") && !isMultiSegmentName(name)) {
-                    // the name needs to be pruned of the marker, and we need to
-                    // decode the value.
-                    name = name.substring(0, name.length() - 1);
-                    // get a new decoder
-                    final RFC2231Encoder decoder = new RFC2231Encoder(HeaderTokenizer.MIME);
-
-                    try {
-                        // decode the value
-                        decodedValue = decoder.decode(value);
-                    } catch (final Exception e) {
-                        // if we're doing things strictly, then raise a parsing
-                        // exception for errors.
-                        // otherwise, leave the value in its current state.
-                        if (decodeParametersStrict) {
-                            throw new ParseException("Invalid RFC2231 encoded parameter");
-                        }
-                    }
-                    _parameters.put(name, new ParameterValue(name, decodedValue, value));
-                } else if (isMultiSegmentName(name)) {
-                    // multisegment parameter
-                    _multiSegmentParameters.put(new MultiSegmentEntry(name), new ParameterValue(name, value));
-                } else {
-                    _parameters.put(name, new ParameterValue(name, value));
-                }
-
+                value = token.getValue();
+            } else if (tokenizer.peek().getType() == HeaderTokenizer.Token.QUOTEDSTRING) {
+                // lenient mode, but the value is a properly quoted string.  Read it
+                // exactly like the strict path so embedded ';' and escapes keep working.
+                value = tokenizer.next().getValue();
             } else {
+                // lenient mode with an unquoted value:  take the raw text up to the
+                // next ';' (or the end of the header) as the value, even if it
+                // contains whitespace or special characters.
+                token = tokenizer.next(';', true);
+                if (token.getType() == HeaderTokenizer.Token.EOF || token.getType() == ';') {
+                    // there was nothing between the '=' and the terminator, treat
+                    // this as an empty value rather than failing.
+                    value = "";
+                } else {
+                    value = token.getValue().trim();
+                }
+                // the raw scan stops after the terminating ';' (if there was one).
+                separatorConsumed = true;
+            }
 
-                throw new ParseException("Missing ';'");
+            String decodedValue = null;
+
+            // we might have to do some additional decoding. A name that
+            // ends with "*"
+            // is marked as being encoded, so if requested, we decode the
+            // value.
+            if (decodeParameters && name.endsWith("*") && !isMultiSegmentName(name)) {
+                // the name needs to be pruned of the marker, and we need to
+                // decode the value.
+                name = name.substring(0, name.length() - 1);
+                // get a new decoder
+                final RFC2231Encoder decoder = new RFC2231Encoder(HeaderTokenizer.MIME);
+
+                try {
+                    // decode the value
+                    decodedValue = decoder.decode(value);
+                } catch (final Exception e) {
+                    // if we're doing things strictly, then raise a parsing
+                    // exception for errors.
+                    // otherwise, leave the value in its current state.
+                    if (decodeParametersStrict) {
+                        throw new ParseException("Invalid RFC2231 encoded parameter");
+                    }
+                }
+                _parameters.put(name, new ParameterValue(name, decodedValue, value));
+            } else if (isMultiSegmentName(name)) {
+                // multisegment parameter
+                _multiSegmentParameters.put(new MultiSegmentEntry(name), new ParameterValue(name, value));
+            } else {
+                _parameters.put(name, new ParameterValue(name, value));
             }
 
         }
@@ -326,6 +358,10 @@ public class ParameterList {
         decodeParameters = SessionUtil.getBooleanProperty(MIME_DECODEPARAMETERS, true); //since JavaMail 1.5 RFC 2231 support is enabled by default
         decodeParametersStrict = SessionUtil.getBooleanProperty(MIME_DECODEPARAMETERS_STRICT, false);
         encodeParameters = SessionUtil.getBooleanProperty(MIME_ENCODEPARAMETERS, true); //since JavaMail 1.5 RFC 2231 support is enabled by default
+        // when false, parameter values that fail to follow the MIME token/quoted-string
+        // rules are recovered by reading the raw text up to the next ';' instead of
+        // raising a ParseException.  The default is the spec-conforming strict mode.
+        parametersStrict = SessionUtil.getBooleanProperty(MIME_PARAMETERS_STRICT, true);
     }
 
     public int size() {

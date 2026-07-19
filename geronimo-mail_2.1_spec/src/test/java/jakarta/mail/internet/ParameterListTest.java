@@ -19,10 +19,13 @@
 
 package jakarta.mail.internet;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @version $Rev$ $Date$
@@ -167,6 +170,73 @@ public class ParameterListTest {
         final ParameterList list2 = new ParameterList(encoded);
         assertEquals(value, list.get("one"));
         assertEquals(list2.toString(), encodedTest);
+    }
+
+    // header reported in GERONIMO-6851: the type parameter value contains an
+    // unquoted '/' which is a MIME special character
+    private static final String UNQUOTED_SPECIALS_HEADER =
+        "multipart/related; type=text/html; boundary=MErelboundary-32775405-3-1674841212";
+
+    @AfterEach
+    public void clearParametersStrictProperty() {
+        System.clearProperty("mail.mime.parameters.strict");
+    }
+
+    @Test
+    public void testLenientParsingOfUnquotedSpecials() throws Exception {
+        System.setProperty("mail.mime.parameters.strict", "false");
+
+        // the reporter's exact header must now parse
+        final ContentType contentType = new ContentType(UNQUOTED_SPECIALS_HEADER);
+        assertEquals("multipart", contentType.getPrimaryType());
+        assertEquals("related", contentType.getSubType());
+        assertEquals("text/html", contentType.getParameter("type"));
+        assertEquals("MErelboundary-32775405-3-1674841212", contentType.getParameter("boundary"));
+
+        // and isMimeType on a part carrying that raw header must work instead of
+        // throwing a ParseException
+        final InternetHeaders headers = new InternetHeaders();
+        headers.addHeader("Content-Type", UNQUOTED_SPECIALS_HEADER);
+        final MimeBodyPart part = new MimeBodyPart(headers, new byte[0]);
+        assertFalse(part.isMimeType("text/plain"));
+        assertTrue(part.isMimeType("multipart/related"));
+    }
+
+    @Test
+    public void testStrictDefaultRejectsUnquotedSpecials() {
+        // without the property set, strict parsing is the default and the
+        // reporter's header must still be rejected
+        assertThrows(ParseException.class, () -> new ContentType(UNQUOTED_SPECIALS_HEADER));
+        assertThrows(ParseException.class, () ->
+            new ParameterList("; type=text/html; boundary=MErelboundary-32775405-3-1674841212"));
+
+        // an explicit "true" behaves the same way
+        System.setProperty("mail.mime.parameters.strict", "true");
+        assertThrows(ParseException.class, () -> new ContentType(UNQUOTED_SPECIALS_HEADER));
+    }
+
+    @Test
+    public void testLenientParsingKeepsWellFormedValues() throws Exception {
+        System.setProperty("mail.mime.parameters.strict", "false");
+
+        // quoted values (including embedded ';' and whitespace) are untouched
+        final ParameterList quoted = new ParameterList("; foo=\"a;b c\"; bar=plain");
+        assertEquals("a;b c", quoted.get("foo"));
+        assertEquals("plain", quoted.get("bar"));
+
+        // RFC 2231 encoded parameters still decode
+        final ParameterList encoded = new ParameterList("; title*=us-ascii'en-us'This%20is%20fun; charset=us-ascii");
+        assertEquals("This is fun", encoded.get("title"));
+        assertEquals("us-ascii", encoded.get("charset"));
+
+        // RFC 2231 multi-segment parameters still combine
+        final ParameterList multi = new ParameterList(";foo*0=one;foo*1=\"two\"");
+        assertEquals("onetwo", multi.get("foo"));
+
+        // an unquoted value with whitespace runs to the next ';' and is trimmed
+        final ParameterList spaces = new ParameterList("; name=hello world stuff ; next=x");
+        assertEquals("hello world stuff", spaces.get("name"));
+        assertEquals("x", spaces.get("next"));
     }
 
     @Test
