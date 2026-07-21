@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.apache.geronimo</groupId>
         <artifactId>geronimo-mail_2.1_parent</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.1.0</version>
     </parent>
 
     <groupId>org.apache.geronimo.mail</groupId>
@@ -243,39 +243,39 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <get src="${mail-tck.url}" dest="${project.build.directory}/jakarta-mail-tck-${mail-tck.version}.zip" skipexisting="true"/>
-                                        <checksum file="${project.build.directory}/jakarta-mail-tck-${mail-tck.version}.zip" algorithm="SHA-256" property="${mail-tck.sha256}" verifyProperty="tck.checksum.ok"/>
+                                        <get src="${mail-tck.url}" dest="${project.build.directory}/jakarta-mail-tck-${mail-tck.version}.zip" skipexisting="true" />
+                                        <checksum file="${project.build.directory}/jakarta-mail-tck-${mail-tck.version}.zip" algorithm="SHA-256" property="${mail-tck.sha256}" verifyProperty="tck.checksum.ok" />
                                         <fail message="jakarta-mail-tck-${mail-tck.version}.zip checksum mismatch">
                                             <condition>
-                                                <isfalse value="${tck.checksum.ok}"/>
+                                                <isfalse value="${tck.checksum.ok}" />
                                             </condition>
                                         </fail>
-                                        <unzip src="${project.build.directory}/jakarta-mail-tck-${mail-tck.version}.zip" dest="${project.build.directory}"/>
+                                        <unzip src="${project.build.directory}/jakarta-mail-tck-${mail-tck.version}.zip" dest="${project.build.directory}" />
 
                                         <!-- point the TCK at this environment; @{...} regex escapes are literal $ -->
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^TS_HOME=.*" replace="TS_HOME=${tck.home}" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVA_HOME=.*" replace="JAVA_HOME=${java.home}" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JARPATH=.*" replace="JARPATH=${project.build.directory}/jarpath" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^API_JAR=.*" replace="API_JAR=${project.build.directory}/jarpath/geronimo-mail_2.1_mail.jar:${project.build.directory}/jarpath/geronimo-activation_2.0_spec.jar" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^CI_JAR=.*" replace="CI_JAR=" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_SERVER=$" replace="JAVAMAIL_SERVER=localhost -pn ${tck.imap.port}" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_USERNAME=$" replace="JAVAMAIL_USERNAME=${tck.user}" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_PASSWORD=$" replace="JAVAMAIL_PASSWORD=${tck.password}" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_TRANSPORT_SERVER=.*" replace="JAVAMAIL_TRANSPORT_SERVER=localhost -tpn ${tck.smtp.port}" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^SMTP_USERNAME=.*" replace="SMTP_USERNAME=user01" byline="true"/>
-                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^SMTP_DOMAIN=.*" replace="SMTP_DOMAIN=james.local" byline="true"/>
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^TS_HOME=.*" replace="TS_HOME=${tck.home}" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVA_HOME=.*" replace="JAVA_HOME=${java.home}" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JARPATH=.*" replace="JARPATH=${project.build.directory}/jarpath" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^API_JAR=.*" replace="API_JAR=${project.build.directory}/jarpath/geronimo-mail_2.1_mail.jar:${project.build.directory}/jarpath/geronimo-activation_2.0_spec.jar" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^CI_JAR=.*" replace="CI_JAR=" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_SERVER=$" replace="JAVAMAIL_SERVER=localhost -pn ${tck.imap.port}" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_USERNAME=$" replace="JAVAMAIL_USERNAME=${tck.user}" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_PASSWORD=$" replace="JAVAMAIL_PASSWORD=${tck.password}" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^JAVAMAIL_TRANSPORT_SERVER=.*" replace="JAVAMAIL_TRANSPORT_SERVER=localhost -tpn ${tck.smtp.port}" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^SMTP_USERNAME=.*" replace="SMTP_USERNAME=user01" byline="true" />
+                                        <replaceregexp file="${tck.home}/lib/ts.jte" match="^SMTP_DOMAIN=.*" replace="SMTP_DOMAIN=james.local" byline="true" />
 
                                         <!-- append the project-owned exclude list of known failures
                                              (src/tck/geronimo.jtx) to the TCK's shipped excludes -->
                                         <concat destfile="${tck.home}/lib/ts.jtx" append="true">
-                                            <fileset file="${project.basedir}/src/tck/geronimo.jtx"/>
+                                            <fileset file="${project.basedir}/src/tck/geronimo.jtx" />
                                         </concat>
 
                                         <!-- the JavaTest harness installs a SecurityManager, which JDK 17+
                                              only permits with this flag (and JDK 24+ not at all - run the
                                              tck profile with a JDK 21) -->
-                                        <replace file="${tck.home}/build.xml" token="&lt;sysproperty key=&quot;testDebug&quot;" value="&lt;jvmarg value=&quot;-Djava.security.manager=allow&quot;/&gt;&lt;sysproperty key=&quot;testDebug&quot;"/>
-                                        <replace file="${tck.home}/build.xml" token=" -timeoutFactor 1" value=" -timeoutFactor ${tck.timeout.factor}"/>
+                                        <replace file="${tck.home}/build.xml" token="&lt;sysproperty key=&quot;testDebug&quot;" value="&lt;jvmarg value=&quot;-Djava.security.manager=allow&quot;/&gt;&lt;sysproperty key=&quot;testDebug&quot;" />
+                                        <replace file="${tck.home}/build.xml" token=" -timeoutFactor 1" value=" -timeoutFactor ${tck.timeout.factor}" />
                                     </target>
                                 </configuration>
                             </execution>
@@ -290,32 +290,32 @@
                                 <configuration>
                                     <target>
                                         <java classname="org.apache.geronimo.mail.tck.JamesTckServer" fork="true" spawn="true">
-                                            <classpath refid="maven.compile.classpath"/>
-                                            <sysproperty key="tck.smtp.port" value="${tck.smtp.port}"/>
-                                            <sysproperty key="tck.imap.port" value="${tck.imap.port}"/>
-                                            <sysproperty key="tck.control.port" value="${tck.control.port}"/>
+                                            <classpath refid="maven.compile.classpath" />
+                                            <sysproperty key="tck.smtp.port" value="${tck.smtp.port}" />
+                                            <sysproperty key="tck.imap.port" value="${tck.imap.port}" />
+                                            <sysproperty key="tck.control.port" value="${tck.control.port}" />
                                         </java>
                                         <waitfor maxwait="120" maxwaitunit="second" checkevery="500" timeoutproperty="tck.james.timeout">
                                             <and>
-                                                <socket server="127.0.0.1" port="${tck.imap.port}"/>
-                                                <socket server="127.0.0.1" port="${tck.smtp.port}"/>
+                                                <socket server="127.0.0.1" port="${tck.imap.port}" />
+                                                <socket server="127.0.0.1" port="${tck.smtp.port}" />
                                             </and>
                                         </waitfor>
-                                        <fail message="embedded James did not open ports ${tck.smtp.port}/${tck.imap.port} in time" if="tck.james.timeout"/>
+                                        <fail message="embedded James did not open ports ${tck.smtp.port}/${tck.imap.port} in time" if="tck.james.timeout" />
 
                                         <!-- fixture setup: fill mailbox 'test1' with the TCK's own data,
                                              using the geronimo client itself (the APPEND deadlock that
                                              once forced the Angus RI here is fixed) -->
                                         <java classname="fpopulate" fork="true" dir="${tck.home}/tests/mailboxes" failonerror="true" timeout="120000">
                                             <classpath>
-                                                <pathelement location="${tck.home}/tests/mailboxes"/>
-                                                <pathelement location="${project.build.directory}/jarpath/geronimo-mail_2.1_mail.jar"/>
-                                                <pathelement location="${project.build.directory}/jarpath/geronimo-activation_2.0_spec.jar"/>
+                                                <pathelement location="${tck.home}/tests/mailboxes" />
+                                                <pathelement location="${project.build.directory}/jarpath/geronimo-mail_2.1_mail.jar" />
+                                                <pathelement location="${project.build.directory}/jarpath/geronimo-activation_2.0_spec.jar" />
                                             </classpath>
-                                            <arg value="-s"/>
-                                            <arg value="test1"/>
-                                            <arg value="-d"/>
-                                            <arg value="imap://user01%40james.local:${tck.password}@localhost:${tck.imap.port}/test1"/>
+                                            <arg value="-s" />
+                                            <arg value="test1" />
+                                            <arg value="-d" />
+                                            <arg value="imap://user01%40james.local:${tck.password}@localhost:${tck.imap.port}/test1" />
                                         </java>
                                     </target>
                                 </configuration>
@@ -334,11 +334,11 @@
                                              so the 'build' target is not needed (and its sources
                                              are not fully included anyway) -->
                                         <ant antfile="${tck.home}/build.xml" target="run" useNativeBasedir="true" inheritall="false">
-                                            <property name="failOnError" value="false"/>
+                                            <property name="failOnError" value="false" />
                                             <!-- pin JavaTest batch concurrency so at most one forked
                                                  test JVM runs at a time; the presetdef splices
                                                  ${tests.arg} right before -runtests -->
-                                            <property name="tests.arg" value="-concurrency 1"/>
+                                            <property name="tests.arg" value="-concurrency 1" />
                                         </ant>
                                     </target>
                                 </configuration>
@@ -354,9 +354,9 @@
                                 <configuration>
                                     <target>
                                         <java classname="org.apache.geronimo.mail.tck.JamesTckServer" fork="true" failonerror="false">
-                                            <classpath refid="maven.compile.classpath"/>
-                                            <sysproperty key="tck.control.port" value="${tck.control.port}"/>
-                                            <arg value="--stop"/>
+                                            <classpath refid="maven.compile.classpath" />
+                                            <sysproperty key="tck.control.port" value="${tck.control.port}" />
+                                            <arg value="--stop" />
                                         </java>
                                     </target>
                                 </configuration>
@@ -371,44 +371,44 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <available file="${tck.home}/JTreport/text/summary.txt" property="tck.summary.present"/>
-                                        <fail message="TCK produced no report at ${tck.home}/JTreport" unless="tck.summary.present"/>
-                                        <loadfile property="tck.summary" srcFile="${tck.home}/JTreport/text/summary.txt"/>
+                                        <available file="${tck.home}/JTreport/text/summary.txt" property="tck.summary.present" />
+                                        <fail message="TCK produced no report at ${tck.home}/JTreport" unless="tck.summary.present" />
+                                        <loadfile property="tck.summary" srcFile="${tck.home}/JTreport/text/summary.txt" />
                                         <resourcecount property="tck.passed.count">
                                             <tokens>
                                                 <concat>
                                                     <filterchain>
                                                         <linecontainsregexp>
-                                                            <regexp pattern="Passed\."/>
+                                                            <regexp pattern="Passed\." />
                                                         </linecontainsregexp>
                                                     </filterchain>
-                                                    <file file="${tck.home}/JTreport/text/summary.txt"/>
+                                                    <file file="${tck.home}/JTreport/text/summary.txt" />
                                                 </concat>
                                             </tokens>
                                         </resourcecount>
                                         <condition property="tck.has.failures">
                                             <or>
-                                                <matches string="${tck.summary}" pattern="Failed\."/>
-                                                <matches string="${tck.summary}" pattern="Error\."/>
+                                                <matches string="${tck.summary}" pattern="Failed\." />
+                                                <matches string="${tck.summary}" pattern="Error\." />
                                             </or>
                                         </condition>
                                         <condition property="tck.ignore.failures">
-                                            <istrue value="${tck.failIgnore}"/>
+                                            <istrue value="${tck.failIgnore}" />
                                         </condition>
-                                        <echo message="Jakarta Mail TCK: ${tck.passed.count} tests passed; report: ${tck.home}/JTreport"/>
+                                        <echo message="Jakarta Mail TCK: ${tck.passed.count} tests passed; report: ${tck.home}/JTreport" />
                                         <fail message="Jakarta Mail TCK reported failures/errors, see ${tck.home}/JTreport">
                                             <condition>
                                                 <and>
-                                                    <isset property="tck.has.failures"/>
+                                                    <isset property="tck.has.failures" />
                                                     <not>
-                                                        <isset property="tck.ignore.failures"/>
+                                                        <isset property="tck.ignore.failures" />
                                                     </not>
                                                 </and>
                                             </condition>
                                         </fail>
                                         <fail message="Jakarta Mail TCK passed zero tests - setup is broken">
                                             <condition>
-                                                <equals arg1="${tck.passed.count}" arg2="0"/>
+                                                <equals arg1="${tck.passed.count}" arg2="0" />
                                             </condition>
                                         </fail>
                                     </target>
