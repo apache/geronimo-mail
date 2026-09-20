@@ -80,6 +80,32 @@ mail.mime.parameters.strict=false
 makes reading tolerant: an unquoted parameter value then simply ends at the
 next semicolon. The default is `true` (strict).
 
+OAuth2 (XOAUTH2) authentication
+========
+
+XOAUTH2 is supported for SMTP, IMAP, POP3 and NNTP. Because the mechanism needs
+an access token rather than a password, it is never selected on its own: the
+application has to ask for it, and the server has to advertise it.
+
+Either of the two properties the reference implementation uses will do that:
+
+```
+mail.<protocol>.auth.mechanisms=XOAUTH2
+mail.<protocol>.auth.xoauth2.disable=false
+```
+
+Pass the access token where the password would otherwise go, for example
+`store.connect(host, user, accessToken)`.
+
+`mail.<protocol>.auth.mechanisms` also restricts which mechanisms are considered
+in general, not only XOAUTH2. Note that it restricts but does not reorder: apart
+from XOAUTH2, which is tried first when it has been asked for, the remaining
+mechanisms are still selected strongest first (DIGEST-MD5, CRAM-MD5, LOGIN,
+PLAIN). Where both it and the older
+`mail.<protocol>.sasl.mechanisms` are set, the SASL-specific one wins, and the
+earlier `mail.<protocol>.sasl.enable` plus `mail.<protocol>.sasl.mechanisms`
+combination continues to work unchanged.
+
 SSL/TLS Protocols used for Mail Connection
 ========
 

@@ -148,6 +148,58 @@ public class AuthenticationTest {
 
     }
 
+    /**
+     * The reference implementation selects XOAUTH2 with mail.&lt;protocol&gt;.auth.mechanisms, without any
+     * SASL configuration.  We accept the same key so that an application does not have to be rewritten
+     * when it moves between the two implementations.  See GERONIMO-6780.
+     */
+    @Test
+    public void testAuthenticateOAuth2UsingAuthMechanisms() throws Exception {
+        final int listenerPort = MailServer.acquirePort();
+        FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("", "user", "token");
+        fs.startServer(listenerPort);
+
+        Properties props = new Properties();
+        props.setProperty("mail.imap.port", String.valueOf(listenerPort));
+        props.setProperty("mail.debug", String.valueOf(true));
+        props.setProperty("mail.debug.auth", String.valueOf(true));
+        props.setProperty("mail.imap.auth.mechanisms", "XOAUTH2");
+
+        Session session = Session.getInstance(props);
+        Store store = session.getStore("imap");
+        store.connect("localhost", "user", "token");
+        assertTrue(store.isConnected());
+        fs.join();
+        assertNull(fs.exception);
+    }
+
+    /**
+     * The reference implementation also enables XOAUTH2 by clearing
+     * mail.&lt;protocol&gt;.auth.xoauth2.disable, which defaults to true because the mechanism needs an
+     * access token rather than a password.  See GERONIMO-6780.
+     */
+    @Test
+    public void testAuthenticateOAuth2UsingXoauth2Disable() throws Exception {
+        final int listenerPort = MailServer.acquirePort();
+        FakeImapAuthPlainServer fs = new FakeImapAuthPlainServer("", "user", "token");
+        fs.startServer(listenerPort);
+
+        Properties props = new Properties();
+        props.setProperty("mail.imap.port", String.valueOf(listenerPort));
+        props.setProperty("mail.debug", String.valueOf(true));
+        props.setProperty("mail.debug.auth", String.valueOf(true));
+        props.setProperty("mail.imap.auth.xoauth2.disable", "false");
+        props.setProperty("mail.imap.auth.login.disable", "true");
+        props.setProperty("mail.imap.auth.plain.disable", "true");
+
+        Session session = Session.getInstance(props);
+        Store store = session.getStore("imap");
+        store.connect("localhost", "user", "token");
+        assertTrue(store.isConnected());
+        fs.join();
+        assertNull(fs.exception);
+    }
+
     @Test
     public void testAuthenticateOAuth2Fail() throws Exception {
         final int listenerPort = MailServer.acquirePort();
@@ -229,7 +281,7 @@ public class AuthenticationTest {
                 pw.flush();
                 String tag = br.readLine().split(" ")[0];
                 pw.write("* OK IMAP4rev1 Server ready\r\n");
-                pw.write("* CAPABILITY IMAP4rev1 AUTH=PLAIN AUTH=OAUTHBEARER AUTH=XOAUTH\r\n");
+                pw.write("* CAPABILITY IMAP4rev1 AUTH=PLAIN AUTH=OAUTHBEARER AUTH=XOAUTH AUTH=XOAUTH2\r\n");
                 pw.write(tag+" OK CAPABILITY completed.\r\n");
                 pw.flush();
                 String answer_1 = br.readLine();

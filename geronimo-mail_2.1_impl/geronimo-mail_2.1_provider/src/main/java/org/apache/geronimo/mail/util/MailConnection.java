@@ -81,6 +81,10 @@ public class MailConnection {
     protected static final String MAIL_SASL_REALM = "sasl.realm";
     protected static final String MAIL_AUTHORIZATIONID = "sasl.authorizationid"; 
     protected static final String MAIL_SASL_MECHANISMS = "sasl.mechanisms";
+    // the reference implementation restricts and orders the mechanisms to consider with
+    // mail.<protocol>.auth.mechanisms; we accept it as an alias so applications need not be rewritten
+    // when moving between the two implementations - see GERONIMO-6780.
+    protected static final String MAIL_AUTH_MECHANISMS = "auth.mechanisms";
     protected static final String MAIL_PLAIN_DISABLE = "auth.plain.disable";
     protected static final String MAIL_LOGIN_DISABLE = "auth.login.disable";
     
@@ -723,7 +727,11 @@ public class MailConnection {
     protected List getSaslMechanisms() {
         if (mechanisms == null) {
             mechanisms = new ArrayList();
+            // the SASL-specific property wins where both are set, being the more specific of the two
             String mechList = props.getProperty(MAIL_SASL_MECHANISMS);
+            if (mechList == null) {
+                mechList = props.getProperty(MAIL_AUTH_MECHANISMS);
+            }
             if (mechList != null) {
                 // the mechanisms are a blank or comma-separated list
                 StringTokenizer tokenizer = new StringTokenizer(mechList, " ,");

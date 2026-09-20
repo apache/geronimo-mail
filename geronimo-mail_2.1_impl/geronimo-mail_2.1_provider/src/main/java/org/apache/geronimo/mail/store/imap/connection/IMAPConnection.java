@@ -519,6 +519,14 @@ public class IMAPConnection extends MailConnection {
             }
         }
 
+        // XOAUTH2 does not go through the SASL API, so it must also be reachable without enabling SASL.
+        // That is how the reference implementation is configured - see GERONIMO-6780.
+        if (AuthenticatorFactory.isXOAuth2Enabled(props) && supportsMechanism(AUTHENTICATION_XOAUTH2)) {
+            if (processOauthAuthentication()) {
+                return true;
+            }
+        }
+
         // see if we're allowed to try plain.
         if (!props.getBooleanProperty(MAIL_PLAIN_DISABLE, false) && supportsMechanism(AUTHENTICATION_PLAIN)) {
             return processPlainAuthentication();
