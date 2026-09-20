@@ -503,6 +503,62 @@ public class InternetAddressTest {
         address = new InternetAddress();
     }
 
+    /**
+     * RFC 5322 section 3.2.2 allows folding white space inside a quoted string, so a display name may be
+     * split across continuation lines.  Unfolding (section 2.2.3) drops the line break and keeps the
+     * white space that begins the continuation line.  This is the header from GERONIMO-6656.
+     */
+    @Test
+    public void testFoldedQuotedDisplayName() throws Exception {
+        final String folded = "\"\\\"sailaja \\\\ ravipati\r\n (EXT/PET-ICT\\\"\" <santosh4024@gmail.com>";
+        final String unfolded = "\"\\\"sailaja \\\\ ravipati (EXT/PET-ICT\\\"\" <santosh4024@gmail.com>";
+        final String personal = "\"sailaja \\ ravipati (EXT/PET-ICT\"";
+
+        parseHeaderTest(folded, false, "santosh4024@gmail.com", personal, unfolded, false);
+        parseHeaderTest(folded, true, "santosh4024@gmail.com", personal, unfolded, false);
+    }
+
+    /**
+     * A fold may use a tab instead of a space, and may appear inside a comment.  Folding carries no
+     * meaning, so a folded header must parse exactly as the same header already unfolded does.
+     * See GERONIMO-6656.
+     */
+    @Test
+    public void testFoldedComment() throws Exception {
+        final InternetAddress[] folded = InternetAddress.parseHeader("foo@apache.org (some\r\n\tremark)", true);
+        final InternetAddress[] unfolded = InternetAddress.parseHeader("foo@apache.org (some\tremark)", true);
+
+        assertEquals(unfolded.length, folded.length, "Folding must not change the number of addresses");
+        assertEquals(unfolded[0].getAddress(), folded[0].getAddress(), "Folding must not change the address");
+        assertEquals(unfolded[0].getPersonal(), folded[0].getPersonal(), "Folding must not change the personal");
+    }
+
+    /**
+     * The same equivalence for a folded domain literal.  See GERONIMO-6656.
+     */
+    @Test
+    public void testFoldedDomainLiteral() throws Exception {
+        final InternetAddress[] folded = InternetAddress.parseHeader("<foo@[192.168.0.1\r\n ]>", false);
+        final InternetAddress[] unfolded = InternetAddress.parseHeader("<foo@[192.168.0.1 ]>", false);
+
+        assertEquals(unfolded.length, folded.length, "Folding must not change the number of addresses");
+        assertEquals(unfolded[0].getAddress(), folded[0].getAddress(), "Folding must not change the address");
+    }
+
+    /**
+     * A line break that is not followed by white space is not a fold, so a bare CR in a quoted display
+     * name remains a syntax error.  See GERONIMO-6656.
+     */
+    @Test
+    public void testBareCarriageReturnInQuotedNameStillRejected() throws Exception {
+        try {
+            new InternetAddress("\"bad\rname\" <foo@apache.org>", true);
+            fail("Expected AddressException for a bare CR in a quoted display name");
+        } catch (final AddressException e) {
+            // expected - a bare CR is not folding white space
+        }
+    }
+
     private void parseHeaderTest(final String address, final boolean strict, final String resultAddr, final String personal, final String toString, final boolean group) throws Exception
     {
         final InternetAddress[] addresses = InternetAddress.parseHeader(address, strict);

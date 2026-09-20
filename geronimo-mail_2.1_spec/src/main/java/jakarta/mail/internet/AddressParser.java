@@ -774,6 +774,46 @@ class AddressParser {
 
 
     /**
+     * Test whether the line break at the current parsing position is folding white space, and step over
+     * it if it is.
+     *
+     * RFC 5322 section 3.2.2 defines folding white space as <code>([*WSP CRLF] 1*WSP)</code> and allows
+     * it inside quoted strings, domain literals and comments, so a display name or a comment may be
+     * split across continuation lines.  Unfolding (section 2.2.3) removes the line break and keeps the
+     * white space that follows it, so this method consumes only the CR and LF; the space or tab that
+     * begins the continuation line is left for the caller's scanning loop to append as an ordinary
+     * character.
+     *
+     * A line break that is not followed by white space is not a fold - no production permits a bare CR
+     * or LF inside these constructs - so the position is left untouched and the caller handles it.
+     *
+     * @return True if a fold was found and stepped over, false if the line break is not a fold.
+     */
+    private boolean scanFoldingWhiteSpace() {
+        int scan = position;
+
+        // the break may be a CRLF pair, a lone CR or a lone LF
+        if (addresses.charAt(scan) == '\r' && scan + 1 < end && addresses.charAt(scan + 1) == '\n') {
+            scan++;
+        }
+
+        // a fold continues with at least one space or tab
+        if (scan + 1 >= end) {
+            return false;
+        }
+        final char next = addresses.charAt(scan + 1);
+        if (next != ' ' && next != '\t') {
+            return false;
+        }
+
+        // leave the position on the last character of the break so that the caller steps onto the
+        // white space beginning the continuation line.
+        position = scan;
+        return true;
+    }
+
+
+    /**
      * Parse a quoted string as specified by the RFC822 specification.
      *
      * @param tokens The TokenStream where the parsed out token is added.
@@ -804,9 +844,14 @@ class AddressParser {
                 nextChar();
                 return;
             }
-            // the RFC822 spec disallows CR characters.
-            else if (ch == '\r') {
-                syntaxError("Illegal line end in literal", position);
+            // a line break here may be folding white space, which is legal and carries no value
+            else if (ch == '\r' || ch == '\n') {
+                if (!scanFoldingWhiteSpace()) {
+                    if (ch == '\r') {
+                        syntaxError("Illegal line end in literal", position);
+                    }
+                    value.append(ch);
+                }
             }
             else
             {
@@ -859,9 +904,14 @@ class AddressParser {
             else if (ch == '[') {
                 syntaxError("Unexpected '['", position);
             }
-            // carriage returns are similarly illegal.
-            else if (ch == '\r') {
-                syntaxError("Illegal line end in domain literal", position);
+            // a line break here may be folding white space, which is legal and carries no value
+            else if (ch == '\r' || ch == '\n') {
+                if (!scanFoldingWhiteSpace()) {
+                    if (ch == '\r') {
+                        syntaxError("Illegal line end in domain literal", position);
+                    }
+                    value.append(ch);
+                }
             }
             else
             {
@@ -953,8 +1003,14 @@ class AddressParser {
                     return;
                 }
             }
-            else if (ch == '\r') {
-                syntaxError("Illegal line end in comment", position);
+            // a line break here may be folding white space, which is legal and carries no value
+            else if (ch == '\r' || ch == '\n') {
+                if (!scanFoldingWhiteSpace()) {
+                    if (ch == '\r') {
+                        syntaxError("Illegal line end in comment", position);
+                    }
+                    value.append(ch);
+                }
             }
             else {
                 value.append(ch);
