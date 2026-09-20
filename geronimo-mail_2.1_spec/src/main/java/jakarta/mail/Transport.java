@@ -20,8 +20,8 @@
 package jakarta.mail;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -73,16 +73,29 @@ public abstract class Transport extends Service {
         }
         
         final Session session = message.session;
-        final Map<Transport, List<Address>> msgsByTransport = new HashMap<Transport, List<Address>>();
+        // Group the recipients by the protocol that will deliver them, then create one Transport per group.
+        // Keying the map on the Transport itself does not work: Session.getTransport(Address) builds a new
+        // instance on every call and Transport does not override equals/hashCode, so every recipient would
+        // land in its own group and the message would be delivered once per recipient (GERONIMO-6713).
+        // The address type is what selects the protocol, so that is what we group on.
+        final Map<String, List<Address>> addressesByType = new LinkedHashMap<String, List<Address>>();
         for (int i = 0; i < addresses.length; i++) {
             final Address address = addresses[i];
-            final Transport transport = session.getTransport(address);
-            List<Address> addrs = msgsByTransport.get(transport);
+            final String type = address.getType();
+            List<Address> addrs = addressesByType.get(type);
             if (addrs == null) {
                 addrs = new ArrayList<Address>();
-                msgsByTransport.put(transport, addrs);
+                addressesByType.put(type, addrs);
             }
             addrs.add(address);
+        }
+
+        final Map<Transport, List<Address>> msgsByTransport = new LinkedHashMap<Transport, List<Address>>();
+        for (final Entry<String, List<Address>> entry : addressesByType.entrySet()) {
+            final List<Address> addrs = entry.getValue();
+            // resolving from the first address of the group also preserves the NoSuchProviderException
+            // thrown for an address type no provider is registered for.
+            msgsByTransport.put(session.getTransport(addrs.get(0)), addrs);
         }
 
         message.saveChanges();
