@@ -26,7 +26,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import jakarta.mail.Address;
 import jakarta.mail.Header;
@@ -38,25 +41,59 @@ import jakarta.mail.MessagingException;
  * @version $Rev$ $Date$
  */
 public class InternetHeaders {
-    // the list of headers (to preserve order);
-    // From RFC822, outside Received and Return-Path, there should be no duplicate header otherwise, it's probably a
-    // bug on our side. CC and BCC could theoretically be present multiple times, even though it's more common to
-    // have one with multiple address similar to.
+    // Headers the specifications allow to occur at most once per message or entity.  Emitting two of any
+    // of these produces a message some servers - Gmail among them - reject, so we refuse to build one
+    // (GERONIMO-6870).  Every other header may legitimately repeat and is simply appended (GERONIMO-6909):
+    // Comments and Keywords are "unlimited" per RFC 5322 section 3.6.5, Received and Return-Path per
+    // section 3.6.7, the Resent-* set occurs once per resending per section 3.6.6, and List-* (RFC 2369),
+    // Authentication-Results (RFC 8601), the ARC-* set (RFC 8617), DKIM-Signature (RFC 6376) and
+    // application-defined X- headers all repeat in practice.
+    private static final Set<String> SINGLE_VALUE_HEADERS;
+    static {
+        final Set<String> singletons = new HashSet<String>();
+        // RFC 5322 section 3.6
+        singletons.add("date");
+        singletons.add("from");
+        singletons.add("sender");
+        singletons.add("reply-to");
+        singletons.add("to");
+        singletons.add("cc");
+        singletons.add("bcc");
+        singletons.add("message-id");
+        singletons.add("in-reply-to");
+        singletons.add("references");
+        singletons.add("subject");
+        // RFC 2045 entity headers, plus Content-Disposition from RFC 2183
+        singletons.add("mime-version");
+        singletons.add("content-type");
+        singletons.add("content-transfer-encoding");
+        singletons.add("content-id");
+        singletons.add("content-description");
+        singletons.add("content-disposition");
+        SINGLE_VALUE_HEADERS = Collections.unmodifiableSet(singletons);
+    }
+
+    // the list of headers (to preserve order)
     protected List<InternetHeader> headers = new ArrayList<InternetHeader>() {
         @Override
         public boolean add(final InternetHeader o) {
-            if ("Received".equals(o.getName()) || "Return-Path".equals(o.getName())) {
-                return super.add(o);
-            }
             assertNoDuplicates(o);
             return super.add(o);
         }
 
         private void assertNoDuplicates(final InternetHeader o) {
+            // headers read from a stream are never rejected - see the loading flag below
+            if (loading) {
+                return;
+            }
+            final String name = o.getName();
+            if (name == null || !SINGLE_VALUE_HEADERS.contains(name.toLowerCase(Locale.ENGLISH))) {
+                return;
+            }
             for (InternetHeader header : this) {
-                if (header.getName() != null && header.getName().equalsIgnoreCase(o.getName())) {
+                if (header.getName() != null && header.getName().equalsIgnoreCase(name)) {
                     if (header.getValue() != null && !header.getValue().isEmpty()) {
-                        throw new IllegalStateException("InternetHeaders cannot contain more than one value for header: " + o.getName());
+                        throw new IllegalStateException("InternetHeaders cannot contain more than one value for header: " + name);
                     }
                     break;
                 }
@@ -65,14 +102,18 @@ public class InternetHeaders {
 
         @Override
         public void add(final int index, final InternetHeader o) {
-            if ("Received".equals(o.getName()) || "Return-Path".equals(o.getName())) {
-                super.add(o);
-                return;
-            }
             assertNoDuplicates(o);
             super.add(index, o);
         }
     };
+
+    // Set while headers are being parsed from a stream.  The single-value policy above exists to stop us
+    // from *emitting* a message with duplicated singleton headers; it must not be applied to messages we
+    // read, because repeated headers are legal and common in the wild - Authentication-Results (RFC 8601),
+    // the ARC-* set (RFC 8617), DKIM-Signature, Comments, Resent-* and List-* all occur more than once on
+    // ordinary mail, and InternetHeaders.getHeader(String) returns a String[] precisely because of that.
+    // See GERONIMO-6908.
+    private boolean loading;
 
     /**
      * Create an empty InternetHeaders
@@ -154,6 +195,8 @@ public class InternetHeaders {
      * @since JavaMail 1.6
      */
     public void load(InputStream is, boolean allowUtf8) throws MessagingException {
+        final boolean wasLoading = loading;
+        loading = true;
         try {
             final StringBuffer buffer = new StringBuffer(128);
             String line;
@@ -189,6 +232,8 @@ public class InternetHeaders {
             }
         } catch (final IOException e) {
             throw new MessagingException("Error loading headers", e);
+        } finally {
+            loading = wasLoading;
         }
     }
 
