@@ -84,7 +84,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.12.2</version>
+            <version>5.14.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -94,7 +94,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.2</version>
+                <version>3.16.0</version>
                 <configuration>
                     <release>11</release>
                 </configuration>
@@ -102,7 +102,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.12.0</version>
                 <configuration>
                     <doclint>none</doclint>  <!-- Turnoff all checks -->
                 </configuration>
@@ -144,7 +144,7 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
-                <version>5.1.9</version>
+                <version>6.2.0</version>
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton=true</Bundle-SymbolicName>
@@ -173,7 +173,7 @@
                         <!-- Override of default rat checks.  To use, type "mvn -Prat verify". -->
                         <groupId>org.apache.rat</groupId>
                         <artifactId>apache-rat-plugin</artifactId>
-                        <version>0.10</version>
+                        <version>0.18</version>
                         <executions>
                             <execution>
                                 <phase>verify</phase>
@@ -185,17 +185,20 @@
                         <configuration>
                             <reportFile>${project.build.directory}/${project.build.finalName}.rat</reportFile>
                             <excludeSubProjects>false</excludeSubProjects>
-                            <excludes>
-                                <exclude>**/target/**/*</exclude>
-                                <exclude>**/appended-resources/**/*</exclude>
-                                <exclude>**/velocity.log</exclude>
+                            <inputExcludes>
+                                <inputExclude>**/target/**/*</inputExclude>
+                                <inputExclude>**/appended-resources/**/*</inputExclude>
+                                <inputExclude>**/velocity.log</inputExclude>
                                 <!-- manifest files don't support comments so don't contain the ASL2.0 header -->
-                                <exclude>**/*.MF</exclude>
+                                <inputExclude>**/*.MF</inputExclude>
                                 <!-- This is a test file that needs to be in exactly the format it is. -->
-                                <exclude>**/wmtom.bin</exclude>
+                                <inputExclude>**/wmtom.bin</inputExclude>
                                 <!--RAT doesn't seem to recognize MIT style licenses-->
-                                <exclude>manual/src/styles/print.css</exclude>
-                            </excludes>
+                                <inputExclude>manual/src/styles/print.css</inputExclude>
+                                <inputExclude>**/dependency-reduced-pom.xml</inputExclude>
+                                <inputExclude>src/main/resources/META-INF/services/*</inputExclude>
+                                <inputExclude>src/test/resources/test.dat</inputExclude>
+                            </inputExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
